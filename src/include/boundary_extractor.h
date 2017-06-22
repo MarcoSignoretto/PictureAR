@@ -26,6 +26,8 @@ namespace mcv{
          */
         boundary_extractor(const std::string& filename);
 
+        boundary_extractor(const cv::Mat image_gray);
+
         /**
          * Find al boundaries of the image
          */
@@ -43,6 +45,8 @@ namespace mcv{
          * @param dest filename of the destionation image
          */
         void draw_boundaries(const std::string& dest);
+
+        void draw_boundaries(cv::Mat& image, cv::Mat& fin_img);
 
         /**
          * This function purge boundaries vector and keep only boundary that has length between
