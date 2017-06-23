@@ -11,8 +11,9 @@ using namespace std;
 
 namespace mcv{
 
-    const uchar WHITE = 255;
-    const uchar BLACK = 0;
+    // TODO changed here to test idea ( WHITE shold be 255)
+    const uchar WHITE = 0;
+    const uchar BLACK = 255;
 
     /**
      * Normalize histogram of image
@@ -95,6 +96,8 @@ namespace mcv{
      *          best_rho_theta.y are rho
      */
     void compute_rho_theta_plane(const cv::Mat &window_mat, cv::Mat &H, cv::Point2f& best_rho_theta) ;
+
+    void extract_lines(const cv::Mat &window_mat, cv::Mat& H, std::vector<cv::Point2f>& lines, int min_score);
 
     /**
      * Convert radiant to degree

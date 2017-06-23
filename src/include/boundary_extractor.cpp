@@ -332,7 +332,7 @@ void boundary_extractor::draw_boundaries(const std::string &dest) {
  * @param fin_img: color image with boundaries
  * @param image: image where write
  */
-void boundary_extractor::draw_boundaries(cv::Mat& image, cv::Mat& fin_img) {
+void boundary_extractor::draw_boundaries(const cv::Mat& image, cv::Mat& fin_img) {
 
     // create a channel vector to produce colored image from
     vector<cv::Mat> channels;
@@ -353,6 +353,25 @@ void boundary_extractor::draw_boundaries(cv::Mat& image, cv::Mat& fin_img) {
     merge(channels, fin_img);
 }
 
+
+void boundary_extractor::draw_boundaries(cv::Mat& image) {
+    image = cv::Mat::zeros(image_.rows, image_.cols, CV_8UC1); // image is larger of 1 px respect to input
+
+    for(boundary& b : boundaries_){
+        draw_boundary(image,b); // draw red line into image respect to boundary pixels
+    }
+
+}
+
+void boundary_extractor::draw_boundaries_corners(cv::Mat& image){
+
+    assert(image.channels() == 3 && "Invalid channel number");
+
+    for(boundary& b : boundaries_){
+        draw_corners(image, b); // draw red line into image respect to boundary pixels
+    }
+}
+
 inline void boundary_extractor::draw_boundary(const boundary &b, vector<cv::Mat>& channels) {
     for(cv::Vec2i v : b.points){
         int j = v[0];
@@ -363,6 +382,49 @@ inline void boundary_extractor::draw_boundary(const boundary &b, vector<cv::Mat>
         channels[2].at<uchar>(i,j) = 255;
     }
 }
+
+inline void boundary_extractor::draw_corners(cv::Mat& image, const boundary &b) {
+
+    assert(image.channels() == 3 && "Invalid channel number");
+
+    for(cv::Vec2i v : b.corners) {
+        int offset = 3;
+        int j_origin = v[0];
+        int i_origin = v[1];
+        /*channels[0].at<uchar>(i_origin, j_origin) = 0;
+        channels[1].at<uchar>(i_origin, j_origin) = 255;
+        channels[2].at<uchar>(i_origin, j_origin) = 0;*/
+
+        // Remove all color from blue and green channel and add full color to red channel
+        for (int i = i_origin-offset; i<i_origin+offset; ++i) {
+            if (i >= 0 && i < image.rows) {
+                for (int j = j_origin - offset; j < j_origin + offset; ++j) {
+                    if (j >= 0 && j < image.rows) {
+                        cv::Vec3b &intensity = image.at<cv::Vec3b>(i, j);
+
+                        intensity[0] = 0;
+                        intensity[1] = 255;
+                        intensity[2] = 0;
+
+                        /*channels[0].at<uchar>(i, j) = 0;
+                        channels[1].at<uchar>(i, j) = 255;
+                        channels[2].at<uchar>(i, j) = 0;*/
+                    }
+                }
+            }
+        }
+    }
+}
+
+inline void boundary_extractor::draw_boundary(cv::Mat& image, const boundary &b) {
+    for(cv::Vec2i v : b.points){
+        int j = v[0];
+        int i = v[1];
+        image.at<uchar>(i,j) = 255;
+    }
+}
+
+
 
 void boundary_extractor::print_boundary_lengths() {
     int i=0;
@@ -375,6 +437,12 @@ void boundary_extractor::keep_between(int min_length, int max_length) {
     // Iterate into inverse order to avoid index problem after remove element that not is in the interval given
     for(int i=(int)boundaries_.size()-1; i >=0 ;--i){
         if(boundaries_[i].length < min_length || boundaries_[i].length > max_length)boundaries_.erase(boundaries_.begin()+i);
+    }
+}
+
+void boundary_extractor::compute_corners(){
+    for(boundary& b : boundaries_){
+        b.compute_corners();
     }
 }
 

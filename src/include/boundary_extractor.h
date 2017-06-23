@@ -46,7 +46,17 @@ namespace mcv{
          */
         void draw_boundaries(const std::string& dest);
 
-        void draw_boundaries(cv::Mat& image, cv::Mat& fin_img);
+        void draw_boundaries(const cv::Mat& image, cv::Mat& fin_img);
+
+        void draw_boundaries(cv::Mat& image);
+
+        // TODO comment
+        /**
+         * Draw boundaries in a colored image
+         * @param image
+         * @param fin_img
+         */
+        void draw_boundaries_corners(cv::Mat& image);
 
         /**
          * This function purge boundaries vector and keep only boundary that has length between
@@ -55,6 +65,9 @@ namespace mcv{
          * @param max_length upper bound (included)
          */
         void keep_between(int min_length, int max_length);
+
+        //TODO comment
+        void compute_corners();
 
         /**
          * This function, for each boundary, print index of boundary into boundaries vector and his length
@@ -121,6 +134,10 @@ namespace mcv{
          * @param channels: 0 is blue, 1 is green, 2 is red (as standard OpenCV)
          */
         inline void draw_boundary(const boundary& b, std::vector<cv::Mat>& channels);
+
+        inline void draw_corners(cv::Mat& image, const boundary &b);
+
+        inline void draw_boundary(cv::Mat& image, const boundary &b);
 
         /**
          * This function remove offset of padding image for all boundary points of each boundary

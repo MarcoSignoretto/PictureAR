@@ -189,6 +189,51 @@ void mcv::compute_rho_theta_plane(const cv::Mat &window_mat, cv::Mat& H, cv::Poi
     }
 }
 
+void mcv::extract_lines(const cv::Mat &window_mat, cv::Mat& H, std::vector<cv::Point2f>& lines, int min_score) {
+    int theta_max = 180; // 180 degree if range of theta
+    const double step = CV_PI / 180; // step of 1 degree
+
+    // rho max is given by length of diagonal of the window_mat
+    int rho_max = (int)round(sqrt((window_mat.rows*window_mat.rows) + (window_mat.cols*window_mat.rows)));
+    H = cv::Mat::zeros(2*rho_max,theta_max, CV_32SC1); // init output matrix, CV_8UC1 is not sufficient
+
+    int nRows = window_mat.rows;
+    int nCols = window_mat.cols;
+
+    // Iterate over window
+    int y,x;
+    for( y = 0; y < nRows; ++y) {
+        // Iterate on image with pointer of row, this method is less efficient that all pointer iteration but works
+        // also for non continuous images
+        const uchar* p = window_mat.ptr<uchar>(y);
+
+        for ( x = 0; x < nCols; ++x) {
+            // black is all zero, if use otsu thresholding white is 1 so use greater than zero in order to work also
+            // with my implementation
+            if(p[x] > mcv::BLACK){
+                // iteration on theta range
+                for(float theta=0.0; theta < CV_PI; theta += step){
+                    // add rho max, now center is in the middle
+                    int discrete_r = rho_max + (int)round((float)x * cos(theta) + (float)y * sin(theta));
+
+                    // in degree ( same operation of to_degree with the given step )
+                    int discrete_theta = (int)round(theta*(1/step));
+
+                    if(discrete_r >= 0 && discrete_r < H.rows && discrete_theta >= 0 && discrete_theta < H.cols){
+                        int& element = H.at<int>(discrete_r,discrete_theta);
+                        element += 1;
+                        // if new max was found update best_rho_theta
+                        if(element > min_score){
+                            lines.push_back(cv::Point2f(theta, discrete_r - rho_max));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+}
+
 double mcv::to_degree(double radiant) {
     return radiant*(180/CV_PI);
 }

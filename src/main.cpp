@@ -36,7 +36,7 @@ int main( int argc, char* argv[] ) {
      *
      */
 
-    /*const std::string filename = "data/test1.jpg";
+    const std::string filename = "data/test1.jpg";
 
     cv::Mat input_img;
     input_img = cv::imread("data/test1.jpg");
@@ -46,6 +46,7 @@ int main( int argc, char* argv[] ) {
     cv::waitKey(0);
 
     const cv::Mat image_gray = cv::imread(filename, cv::IMREAD_GRAYSCALE);
+
     //Calculate histogram
     int max_value;
     cv::Mat hist_ = mcv::compute_hist(image_gray, max_value);
@@ -62,7 +63,7 @@ int main( int argc, char* argv[] ) {
     cv::imshow("image_th",image);
 
     cv::waitKey(0);
-
+    /*
 
 
     //=== begin corners on img thresholded ==
@@ -92,17 +93,70 @@ int main( int argc, char* argv[] ) {
     cv::cornerHarris(image,img_corners,block_size, kernel_size, free_parameter,cv::BorderTypes::BORDER_DEFAULT);
 
     cv::imshow("image_corners_canny",img_corners_canny);
-    cv::waitKey(0);
+    cv::waitKey(0);*/
     //===END
 
-    mcv::boundary_extractor be(filename);
+    //=== begin boundary extractor + hpught ==
+    /*cv::Mat fin_img;
+    cv::Mat boundaries_img;
+
+    mcv::boundary_extractor be(image_gray);
     be.find_boundaries();
     be.keep_between(300,1000);
+    be.compute_corners();
     cout << "Boundaries: " << endl;
     be.print_boundary_lengths();
-    be.draw_boundaries("boundaries.png");
+    be.draw_boundaries(image_gray, fin_img);
+    be.draw_boundaries(boundaries_img); // draw boundary image
+    be.draw_boundaries_corners(fin_img);
 
-    cout << "================ END ===============" << endl;*/
+
+    cv::imshow("live_boundaries", boundaries_img);
+    cv::waitKey(0);
+
+    cv::imshow("live", fin_img);
+    cv::waitKey(0);*/
+
+    //====houghProb
+
+    /*vector<cv::Vec4i> lines;
+    cv::HoughLinesP( boundaries_img, lines, 1, CV_PI/180, 60, 30, 10);
+    for( size_t i = 0; i < lines.size(); i++ )
+    {
+        cv::line( fin_img, cv::Point(lines[i][0], lines[i][1]),
+              cv::Point(lines[i][2], lines[i][3]), cv::Scalar(255,0,0), 3, 8 );
+    }*/
+
+    //==== hough
+    /*cv::Mat rho_theta_plane;
+    cv::Point2f best_rho_theta;
+    std::vector<cv::Point2f> lines;
+    int min_points = 60;
+    mcv::extract_lines(boundaries_img, rho_theta_plane, lines, min_points);
+    //mcv::compute_rho_theta_plane(boundaries_img,rho_theta_plane, best_rho_theta);
+
+    for (cv::Point2f& point: lines) {
+        mcv::line(fin_img,point.y,point.x);
+    }*/
+
+    //===corners
+    /*cv::Mat img_corners = cv::Mat::zeros(boundaries_img.rows, boundaries_img.cols, CV_32FC1);
+    int block_size = 7;//Good 7
+    int kernel_size = 5;// Good 5
+    float free_parameter = 0.08; // more little more corners will be found
+    cv::cornerHarris(boundaries_img,img_corners,block_size, kernel_size, free_parameter,cv::BorderTypes::BORDER_DEFAULT);
+
+    cv::imshow("image_corners_boundary",img_corners);
+    cv::waitKey(0);
+
+    cv::imshow("live", fin_img);
+    cv::waitKey(0);*/
+
+
+
+    //===END
+
+    cout << "================ END ===============" << endl;
 
     std::string video_input_name = "data/test_video2.mp4";
 
@@ -147,17 +201,47 @@ int main( int argc, char* argv[] ) {
                 std::cout << grayscale.channels() << std::endl;
 
                 cv::Mat fin_img;
+                cv::Mat boundaries_img;
 
                 mcv::boundary_extractor be(grayscale);
                 be.find_boundaries();
                 be.keep_between(200,1200);
+                be.compute_corners();
                 cout << "Boundaries: " << endl;
                 be.print_boundary_lengths();
                 be.draw_boundaries(grayscale, fin_img);
+                be.draw_boundaries(boundaries_img);
+                be.draw_boundaries_corners(fin_img);
                 //be.draw_boundaries("boundaries.png");
                 std::cout << fin_img.channels() << std::endl;
 
+                //==== hough lines
+
+                /*cv::Mat rho_theta_plane;
+                cv::Point2f best_rho_theta;
+                std::vector<cv::Point2f> lines;
+                int min_points = 50;
+                mcv::extract_lines(boundaries_img, rho_theta_plane, lines, min_points);
+                //mcv::compute_rho_theta_plane(boundaries_img,rho_theta_plane, best_rho_theta);
+
+                for (cv::Point2f& point: lines) {
+                    mcv::line(fin_img,point.y,point.x);
+                }*/
+
+                //==== houghline P ( not good on video )
+
+                /*vector<cv::Vec4i> lines;
+                cv::HoughLinesP( boundaries_img, lines, 1, CV_PI/180, 70, 40, 10);
+                for( size_t i = 0; i < lines.size(); i++ )
+                {
+                    cv::line( fin_img, cv::Point(lines[i][0], lines[i][1]),
+                              cv::Point(lines[i][2], lines[i][3]), cv::Scalar(255,0,0), 3, 8 );
+                }*/
+
                 cv::imshow("live", fin_img);
+
+
+
 
                 /*// split image in channels ( red is interesting for this problem )
                 cv::split(frame, channels);
