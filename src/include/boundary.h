@@ -50,15 +50,15 @@ namespace mcv{
                     corners[0][0] = point[0];
                     corners[0][1] = point[1];
                 }
-                if(point[1]==max_y-1 && corners[1][1]==-1){
+                if(point[1]==max_y-1 && corners[1][1]==-1){ // MAX Y
                     corners[1][0] = point[0];
                     corners[1][1] = point[1];
                 }
-                if(point[0]==min_x-1 && corners[2][0]==-1){
+                if(point[0]==min_x-1 && corners[2][0]==-1){ // MIN X
                     corners[2][0] = point[0];
                     corners[2][1] = point[1];
                 }
-                if(point[1]==min_y-1 && corners[3][1]==-1){
+                if(point[1]==min_y-1 && corners[3][1]==-1){ // MIN Y
                     corners[3][0] = point[0];
                     corners[3][1] = point[1];
                 }

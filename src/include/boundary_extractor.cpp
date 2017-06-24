@@ -399,7 +399,7 @@ inline void boundary_extractor::draw_corners(cv::Mat& image, const boundary &b) 
         for (int i = i_origin-offset; i<i_origin+offset; ++i) {
             if (i >= 0 && i < image.rows) {
                 for (int j = j_origin - offset; j < j_origin + offset; ++j) {
-                    if (j >= 0 && j < image.rows) {
+                    if (j >= 0 && j < image.cols) {
                         cv::Vec3b &intensity = image.at<cv::Vec3b>(i, j);
 
                         intensity[0] = 0;
