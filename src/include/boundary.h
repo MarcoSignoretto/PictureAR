@@ -95,7 +95,7 @@ namespace mcv{
                 // -1 because there is offset of padded image
                 if(point[0]==max_x-1){ // first corner that archive max_x
                     float current_intensity = img_corners.at<float>(point[1],point[0]);
-                    if(intensity[0]< current_intensity) {
+                    if(intensity[0] < current_intensity) {
                         corners[0][0] = point[0];
                         corners[0][1] = point[1];
                         intensity[0] = current_intensity;

@@ -97,7 +97,7 @@ int main( int argc, char* argv[] ) {
     //===END
 
     //=== begin boundary extractor + corners ==
-    /*cv::Mat fin_img;
+    cv::Mat fin_img;
     cv::Mat boundaries_img;
 
     mcv::boundary_extractor be(image_gray);
@@ -123,7 +123,7 @@ int main( int argc, char* argv[] ) {
 
     //search corners in img_corners
     be.compute_corners(img_corners);
-    be.draw_boundaries_corners(fin_img);*/
+    be.draw_boundaries_corners(fin_img);
 
     /*for(int j=0; j< img_corners.rows; ++j){
         for(int i=0; i < img_corners.cols; ++i){
@@ -131,14 +131,14 @@ int main( int argc, char* argv[] ) {
         }
     }*/
 
-    /*cv::imshow("image_corners_boundary",img_corners);
+    cv::imshow("image_corners_boundary",img_corners);
     cv::waitKey(0);
 
     cv::imshow("live_boundaries", boundaries_img);
     cv::waitKey(0);
 
     cv::imshow("live", fin_img);
-    cv::waitKey(0);*/
+    cv::waitKey(0);
 
     //====houghProb
 
@@ -171,7 +171,7 @@ int main( int argc, char* argv[] ) {
 
     cout << "================ END ===============" << endl;
 
-    std::string video_input_name = "data/test_video2.mp4";
+    std::string video_input_name = "data/test_video1.mp4";
 
     const int width = 256; // experimental good window width for current problem
     const int height = 256; // experimental good window height for current problem
@@ -201,6 +201,10 @@ int main( int argc, char* argv[] ) {
         sm.set_output_file("speed.txt");*/
         int frame_number = 1;
 
+        // TODO deallocation problem with following matrix ( maybe fin_img that become colored image)
+        cv::Mat grayscale;
+        cv::Mat fin_img;
+        cv::Mat boundaries_img;
 
         while(!end){
             cv::Mat frame;
@@ -209,20 +213,19 @@ int main( int argc, char* argv[] ) {
                 end = true;
             }else {
 
-                cv::Mat grayscale;
-                cvtColor(frame, grayscale, CV_RGB2GRAY);
+                cv::cvtColor(frame, grayscale, CV_RGB2GRAY);
                 std::cout << grayscale.channels() << std::endl;
-
-                cv::Mat fin_img;
-                cv::Mat boundaries_img;
 
                 mcv::boundary_extractor be(grayscale);
                 be.find_boundaries();
                 be.keep_between(200,1200);
                 //be.compute_corners();
-                cout << "Boundaries: " << endl;
-                be.print_boundary_lengths();
-                be.draw_boundaries(grayscale, fin_img);
+                //cout << "Boundaries: " << endl;
+                //be.print_boundary_lengths();
+                //be.draw_boundaries(grayscale, fin_img);
+
+                cv::cvtColor(grayscale, fin_img, CV_GRAY2RGB);
+
                 be.draw_boundaries(boundaries_img);
 
                 //===corners

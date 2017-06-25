@@ -5,6 +5,7 @@
 #include <iostream>
 #include <opencv2/imgcodecs/imgcodecs.hpp>
 #include <opencv2/imgcodecs/imgcodecs_c.h>
+#include <opencv2/imgproc.hpp>
 
 #include "boundary_extractor.h"
 #include "utils.h"
@@ -334,6 +335,9 @@ void boundary_extractor::draw_boundaries(const std::string &dest) {
  */
 void boundary_extractor::draw_boundaries(const cv::Mat& image, cv::Mat& fin_img) {
 
+
+
+    // TODO this function crash
     // create a channel vector to produce colored image from
     vector<cv::Mat> channels;
     // set each channel image value ( remain grayscale )
