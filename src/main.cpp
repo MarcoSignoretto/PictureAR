@@ -47,7 +47,7 @@ int main( int argc, char* argv[] ) {
 
     const cv::Mat image_gray = cv::imread(filename, cv::IMREAD_GRAYSCALE);
 
-    //Calculate histogram
+    /*//Calculate histogram
     int max_value;
     cv::Mat hist_ = mcv::compute_hist(image_gray, max_value);
 
@@ -62,7 +62,7 @@ int main( int argc, char* argv[] ) {
 
     cv::imshow("image_th",image);
 
-    cv::waitKey(0);
+    cv::waitKey(0);*/
     /*
 
 
@@ -96,20 +96,43 @@ int main( int argc, char* argv[] ) {
     cv::waitKey(0);*/
     //===END
 
-    //=== begin boundary extractor + hpught ==
+    //=== begin boundary extractor + corners ==
     /*cv::Mat fin_img;
     cv::Mat boundaries_img;
 
     mcv::boundary_extractor be(image_gray);
     be.find_boundaries();
     be.keep_between(300,1000);
-    be.compute_corners();
+    //be.compute_corners();
     cout << "Boundaries: " << endl;
     be.print_boundary_lengths();
     be.draw_boundaries(image_gray, fin_img);
     be.draw_boundaries(boundaries_img); // draw boundary image
-    be.draw_boundaries_corners(fin_img);
 
+
+    //===corners
+    cv::Mat img_corners = cv::Mat::zeros(boundaries_img.rows, boundaries_img.cols, CV_32FC1); // float values
+    int block_size = 7;//Good 7
+    int kernel_size = 7;// Good 5
+    float free_parameter = 0.05; // more little more corners will be found
+    cv::cornerHarris(boundaries_img,img_corners,block_size, kernel_size, free_parameter,cv::BorderTypes::BORDER_DEFAULT);
+
+    cv::imshow("live", fin_img);
+    cv::waitKey(0);
+
+
+    //search corners in img_corners
+    be.compute_corners(img_corners);
+    be.draw_boundaries_corners(fin_img);*/
+
+    /*for(int j=0; j< img_corners.rows; ++j){
+        for(int i=0; i < img_corners.cols; ++i){
+            float val = img_corners.at<float>(j,i);
+        }
+    }*/
+
+    /*cv::imshow("image_corners_boundary",img_corners);
+    cv::waitKey(0);
 
     cv::imshow("live_boundaries", boundaries_img);
     cv::waitKey(0);
@@ -139,18 +162,8 @@ int main( int argc, char* argv[] ) {
         mcv::line(fin_img,point.y,point.x);
     }*/
 
-    //===corners
-    /*cv::Mat img_corners = cv::Mat::zeros(boundaries_img.rows, boundaries_img.cols, CV_32FC1);
-    int block_size = 7;//Good 7
-    int kernel_size = 5;// Good 5
-    float free_parameter = 0.08; // more little more corners will be found
-    cv::cornerHarris(boundaries_img,img_corners,block_size, kernel_size, free_parameter,cv::BorderTypes::BORDER_DEFAULT);
 
-    cv::imshow("image_corners_boundary",img_corners);
-    cv::waitKey(0);
 
-    cv::imshow("live", fin_img);
-    cv::waitKey(0);*/
 
 
 
@@ -206,11 +219,21 @@ int main( int argc, char* argv[] ) {
                 mcv::boundary_extractor be(grayscale);
                 be.find_boundaries();
                 be.keep_between(200,1200);
-                be.compute_corners();
+                //be.compute_corners();
                 cout << "Boundaries: " << endl;
                 be.print_boundary_lengths();
                 be.draw_boundaries(grayscale, fin_img);
                 be.draw_boundaries(boundaries_img);
+
+                //===corners
+                cv::Mat img_corners = cv::Mat::zeros(boundaries_img.rows, boundaries_img.cols, CV_32FC1); // float values
+                int block_size = 7;//Good 7
+                int kernel_size = 7;// Good 5
+                float free_parameter = 0.05; // more little more corners will be found
+                cv::cornerHarris(boundaries_img,img_corners,block_size, kernel_size, free_parameter,cv::BorderTypes::BORDER_DEFAULT);
+
+                //search corners in img_corners
+                be.compute_corners(img_corners);
                 be.draw_boundaries_corners(fin_img);
                 //be.draw_boundaries("boundaries.png");
                 std::cout << fin_img.channels() << std::endl;

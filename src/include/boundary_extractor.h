@@ -69,6 +69,9 @@ namespace mcv{
         //TODO comment
         void compute_corners();
 
+        // TODO comment
+        void compute_corners(cv::Mat& img_corners);
+
         /**
          * This function, for each boundary, print index of boundary into boundaries vector and his length
          */

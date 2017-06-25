@@ -23,6 +23,13 @@ namespace mcv{
                 cv::Vec2i(-1,-1),
                 cv::Vec2i(-1,-1),
         }; // clock wise ordered
+        std::vector<float> intensity = {
+                0.0f,
+                0.0f,
+                0.0f,
+                0.0f
+        }; // clock wise ordered
+
         std::vector<cv::Vec2i> points; // clock wise ordered
 
         void add_item(cv::Vec2i& b){
@@ -43,24 +50,80 @@ namespace mcv{
         }
 
         // TODO comment
+        // TODO if look at next consider last point of boundaries
         void compute_corners(){
-            for(cv::Vec2i& point : points){
+            //for(cv::Vec2i& point : points){
+            for(int i = 0; i < points.size(); ++i){
+                cv::Vec2i& point = points[i];
+                cv::Vec2i& next_point = points[(i+1)%points.size()];
+
                 // -1 because there is offset of padded image
-                if(point[0]==max_x-1 && corners[0][0]==-1){ // first corner that archive max_x
-                    corners[0][0] = point[0];
-                    corners[0][1] = point[1];
+                if(point[0]==max_x-1 /*&& point[1] >= corners[0][1]){corners[0][0]==-1*/ ){ // first corner that archive max_x
+                    if(corners[0][0]==-1 || next_point[0]<corners[0][0]) {
+                        corners[0][0] = point[0];
+                        corners[0][1] = point[1];
+                    }
                 }
-                if(point[1]==max_y-1 && corners[1][1]==-1){ // MAX Y
-                    corners[1][0] = point[0];
-                    corners[1][1] = point[1];
+                if(point[1]==max_y-1){ // MAX Y
+                    if(corners[1][1]==-1 || next_point[1]<corners[1][1]) {
+                        corners[1][0] = point[0];
+                        corners[1][1] = point[1];
+                    }
                 }
-                if(point[0]==min_x-1 && corners[2][0]==-1){ // MIN X
-                    corners[2][0] = point[0];
-                    corners[2][1] = point[1];
+                if(point[0]==min_x-1) { // MIN X
+                    if (corners[2][0] == -1 || next_point[0] > corners[2][0]) {
+                        corners[2][0] = point[0];
+                        corners[2][1] = point[1];
+                    }
                 }
-                if(point[1]==min_y-1 && corners[3][1]==-1){ // MIN Y
-                    corners[3][0] = point[0];
-                    corners[3][1] = point[1];
+                if(point[1]==min_y-1){ // MIN Y
+                    if(corners[3][1]==-1 || next_point[1] > corners[3][1]) {
+                        corners[3][0] = point[0];
+                        corners[3][1] = point[1];
+                    }
+                }
+            }
+        }
+
+        void compute_corners(cv::Mat& img_corners){
+            for(int i = 0; i < points.size(); ++i){
+                cv::Vec2i& point = points[i];
+                //cv::Vec2i& next_point = points[(i+1)%points.size()];
+
+                //float current_intensity = img_corners.at<float>(point[0],point[1]);
+
+                // -1 because there is offset of padded image
+                if(point[0]==max_x-1){ // first corner that archive max_x
+                    float current_intensity = img_corners.at<float>(point[1],point[0]);
+                    if(intensity[0]< current_intensity) {
+                        corners[0][0] = point[0];
+                        corners[0][1] = point[1];
+                        intensity[0] = current_intensity;
+                    }
+                }
+                if(point[1]==max_y-1){ // MAX Y
+                    float current_intensity = img_corners.at<float>(point[1],point[0]);
+                    if(intensity[1] < current_intensity) {
+                        corners[1][0] = point[0];
+                        corners[1][1] = point[1];
+                        intensity[1] = current_intensity;
+                    }
+                }
+                if(point[0]==min_x-1) { // MIN X
+                    float current_intensity = img_corners.at<float>(point[1],point[0]);
+                    if(intensity[2] < current_intensity) {
+                        corners[2][0] = point[0];
+                        corners[2][1] = point[1];
+                        intensity[2] = current_intensity;
+                    }
+                }
+                if(point[1]==min_y-1){ // MIN Y
+                    float current_intensity = img_corners.at<float>(point[1],point[0]);
+                    if(intensity[3]< current_intensity) {
+                        corners[3][0] = point[0];
+                        corners[3][1] = point[1];
+                        intensity[3] = current_intensity;
+                    }
                 }
             }
         }

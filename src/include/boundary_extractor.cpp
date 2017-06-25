@@ -446,6 +446,12 @@ void boundary_extractor::compute_corners(){
     }
 }
 
+void boundary_extractor::compute_corners(cv::Mat& img_corners){
+    for(boundary& b : boundaries_){
+        b.compute_corners(img_corners);
+    }
+}
+
 inline void boundary_extractor::normalize() {
     // Normalize all points removing padding offset
     for(boundary& b : boundaries_){
