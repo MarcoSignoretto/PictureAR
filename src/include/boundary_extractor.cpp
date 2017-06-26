@@ -303,6 +303,7 @@ inline int boundary_extractor::find_clock_index(cv::Vec2i* c_ptr, cv::Vec2i* b_p
     return index;
 }
 
+// TODO refactor call functio below
 void boundary_extractor::draw_boundaries(const std::string &dest) {
     cv::Mat fin_img;
     // read original image in grayscale
@@ -320,7 +321,7 @@ void boundary_extractor::draw_boundaries(const std::string &dest) {
     channels.push_back(image.clone());
 
     for(boundary& b : boundaries_){
-        draw_boundary(b,channels); // draw red line into image respect to boundary pixels
+        draw_boundary(image,b,channels); // draw red line into image respect to boundary pixels
     }
 
     // merge channels into color image fin_image
@@ -337,7 +338,6 @@ void boundary_extractor::draw_boundaries(const cv::Mat& image, cv::Mat& fin_img)
 
 
 
-    // TODO this function crash
     // create a channel vector to produce colored image from
     vector<cv::Mat> channels;
     // set each channel image value ( remain grayscale )
@@ -350,7 +350,7 @@ void boundary_extractor::draw_boundaries(const cv::Mat& image, cv::Mat& fin_img)
     channels.push_back(image.clone());
 
     for(boundary& b : boundaries_){
-        draw_boundary(b,channels); // draw red line into image respect to boundary pixels
+        draw_boundary(image,b,channels); // draw red line into image respect to boundary pixels
     }
 
     // merge channels into color image fin_image
@@ -376,14 +376,17 @@ void boundary_extractor::draw_boundaries_corners(cv::Mat& image){
     }
 }
 
-inline void boundary_extractor::draw_boundary(const boundary &b, vector<cv::Mat>& channels) {
+inline void boundary_extractor::draw_boundary(const cv::Mat& image, const boundary &b, vector<cv::Mat>& channels) {
     for(cv::Vec2i v : b.points){
         int j = v[0];
         int i = v[1];
-        // Remove all color from blue and green channel and add full color to red channel
-        channels[0].at<uchar>(i,j) = 0;
-        channels[1].at<uchar>(i,j) = 0;
-        channels[2].at<uchar>(i,j) = 255;
+        // Draw only if boundary inside image content
+        if(j>=0 && i>=0 && j<image.cols && i<image.rows) {
+            // Remove all color from blue and green channel and add full color to red channel
+            channels[0].at<uchar>(i, j) = 0;
+            channels[1].at<uchar>(i, j) = 0;
+            channels[2].at<uchar>(i, j) = 255;
+        }
     }
 }
 
@@ -422,8 +425,8 @@ inline void boundary_extractor::draw_corners(cv::Mat& image, const boundary &b) 
 
 inline void boundary_extractor::draw_boundary(cv::Mat& image, const boundary &b) {
     for(cv::Vec2i v : b.points){
-        int j = v[0];
-        int i = v[1];
+        int j = v[0]+1;// +1 is in order to add padding in image
+        int i = v[1]+1;
         image.at<uchar>(i,j) = 255;
     }
 }
@@ -444,11 +447,17 @@ void boundary_extractor::keep_between(int min_length, int max_length) {
     }
 }
 
-void boundary_extractor::compute_corners(){
+void boundary_extractor::keep_between_corners(int min_corners, int max_corners){
+    for(int i=(int)boundaries_.size()-1; i >=0 ;--i){
+        if(boundaries_[i].corners_number < min_corners || boundaries_[i].corners_number > max_corners)boundaries_.erase(boundaries_.begin()+i);
+    }
+}
+
+/*void boundary_extractor::compute_corners(){
     for(boundary& b : boundaries_){
         b.compute_corners();
     }
-}
+}*/
 
 void boundary_extractor::compute_corners(cv::Mat& img_corners){
     for(boundary& b : boundaries_){

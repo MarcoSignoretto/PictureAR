@@ -46,6 +46,7 @@ namespace mcv{
          */
         void draw_boundaries(const std::string& dest);
 
+        // TODO comment
         void draw_boundaries(const cv::Mat& image, cv::Mat& fin_img);
 
         void draw_boundaries(cv::Mat& image);
@@ -66,8 +67,11 @@ namespace mcv{
          */
         void keep_between(int min_length, int max_length);
 
+        // TODO comment
+        void keep_between_corners(int min_corners, int max_corners);
+
         //TODO comment
-        void compute_corners();
+        //void compute_corners();
 
         // TODO comment
         void compute_corners(cv::Mat& img_corners);
@@ -131,12 +135,13 @@ namespace mcv{
          */
         inline int find_clock_index(cv::Vec2i* c, cv::Vec2i* b);
 
+        // TODO edit comment
         /**
          * Internal function that draw in red a boundary on a image divided into channel given.
          * @param b: boundary to draw
          * @param channels: 0 is blue, 1 is green, 2 is red (as standard OpenCV)
          */
-        inline void draw_boundary(const boundary& b, std::vector<cv::Mat>& channels);
+        inline void draw_boundary(const cv::Mat& image, const boundary& b, std::vector<cv::Mat>& channels);
 
         inline void draw_corners(cv::Mat& image, const boundary &b);
 

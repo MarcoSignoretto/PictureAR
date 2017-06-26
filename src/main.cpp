@@ -97,6 +97,7 @@ int main( int argc, char* argv[] ) {
     //===END
 
     //=== begin boundary extractor + corners ==
+
     cv::Mat fin_img;
     cv::Mat boundaries_img;
 
@@ -112,7 +113,7 @@ int main( int argc, char* argv[] ) {
 
     //===corners
     cv::Mat img_corners = cv::Mat::zeros(boundaries_img.rows, boundaries_img.cols, CV_32FC1); // float values
-    int block_size = 7;//Good 7
+    int block_size = 11;//Good 7
     int kernel_size = 7;// Good 5
     float free_parameter = 0.05; // more little more corners will be found
     cv::cornerHarris(boundaries_img,img_corners,block_size, kernel_size, free_parameter,cv::BorderTypes::BORDER_DEFAULT);
@@ -123,13 +124,8 @@ int main( int argc, char* argv[] ) {
 
     //search corners in img_corners
     be.compute_corners(img_corners);
+    be.keep_between_corners(4,4);
     be.draw_boundaries_corners(fin_img);
-
-    /*for(int j=0; j< img_corners.rows; ++j){
-        for(int i=0; i < img_corners.cols; ++i){
-            float val = img_corners.at<float>(j,i);
-        }
-    }*/
 
     cv::imshow("image_corners_boundary",img_corners);
     cv::waitKey(0);
@@ -219,27 +215,27 @@ int main( int argc, char* argv[] ) {
                 mcv::boundary_extractor be(grayscale);
                 be.find_boundaries();
                 be.keep_between(200,1200);
-                //be.compute_corners();
-                //cout << "Boundaries: " << endl;
-                //be.print_boundary_lengths();
-                //be.draw_boundaries(grayscale, fin_img);
 
-                cv::cvtColor(grayscale, fin_img, CV_GRAY2RGB);
 
-                be.draw_boundaries(boundaries_img);
+                be.draw_boundaries(boundaries_img);// 1 pixel of padding
 
                 //===corners
                 cv::Mat img_corners = cv::Mat::zeros(boundaries_img.rows, boundaries_img.cols, CV_32FC1); // float values
-                int block_size = 7;//Good 7
+                int block_size = 11;//Good 7
                 int kernel_size = 7;// Good 5
                 float free_parameter = 0.05; // more little more corners will be found
                 cv::cornerHarris(boundaries_img,img_corners,block_size, kernel_size, free_parameter,cv::BorderTypes::BORDER_DEFAULT);
 
                 //search corners in img_corners
                 be.compute_corners(img_corners);
+                be.keep_between_corners(4,4);
+
+                be.draw_boundaries(grayscale, fin_img); // TODO remove or convert like corners
                 be.draw_boundaries_corners(fin_img);
                 //be.draw_boundaries("boundaries.png");
                 std::cout << fin_img.channels() << std::endl;
+
+                cv::imshow("corners", img_corners);
 
                 //==== hough lines
 
