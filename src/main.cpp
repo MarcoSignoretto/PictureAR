@@ -28,6 +28,19 @@ void mouse_callback(int event, int x, int y, int flag, void* userdata){
 
 int main( int argc, char* argv[] ) {
 
+    cv::Mat img_0p;
+    cv::Mat img_1p;
+    img_0p = cv::imread("data/0P.png");
+    img_1p = cv::imread("data/1P.png");
+
+
+    cv::imshow("0P",img_0p);
+    cv::waitKey(0);
+
+    cv::imshow("1P",img_1p);
+    cv::waitKey(0);
+
+
     /*
      * 1) Identify possible marker
      * 2) Search best match with Models given, cv::warpPerspective can be used to warm images
@@ -98,7 +111,7 @@ int main( int argc, char* argv[] ) {
 
     //=== begin boundary extractor + corners ==
 
-    cv::Mat fin_img;
+    /*cv::Mat fin_img;
     cv::Mat boundaries_img;
 
     mcv::boundary_extractor be(image_gray);
@@ -107,7 +120,6 @@ int main( int argc, char* argv[] ) {
     //be.compute_corners();
     cout << "Boundaries: " << endl;
     be.print_boundary_lengths();
-    be.draw_boundaries(image_gray, fin_img);
     be.draw_boundaries(boundaries_img); // draw boundary image
 
 
@@ -118,23 +130,72 @@ int main( int argc, char* argv[] ) {
     float free_parameter = 0.05; // more little more corners will be found
     cv::cornerHarris(boundaries_img,img_corners,block_size, kernel_size, free_parameter,cv::BorderTypes::BORDER_DEFAULT);
 
-    cv::imshow("live", fin_img);
-    cv::waitKey(0);
-
-
     //search corners in img_corners
     be.compute_corners(img_corners);
     be.keep_between_corners(4,4);
+
+    be.draw_boundaries(image_gray, fin_img);
     be.draw_boundaries_corners(fin_img);
 
-    cv::imshow("image_corners_boundary",img_corners);
-    cv::waitKey(0);
+    //cv::imshow("image_corners_boundary",img_corners);
+    //cv::waitKey(0);
 
-    cv::imshow("live_boundaries", boundaries_img);
-    cv::waitKey(0);
+    //cv::imshow("live_boundaries", boundaries_img);
+    //cv::waitKey(0);
 
     cv::imshow("live", fin_img);
     cv::waitKey(0);
+
+
+
+    std::vector<mcv::boundary>& boundaries = be.get_boundaries();
+    for(mcv::boundary& boundary : boundaries){
+        std::vector<cv::Vec2d> corners;
+        for(cv::Vec2i& corner : boundary.corners){
+            corners.push_back(cv::Vec2d(corner[0],corner[1]));
+        }
+
+
+        std::vector< cv::Vec2d > dst_points = {
+                cv::Vec2d(0, 0),
+                cv::Vec2d(256, 0),
+                cv::Vec2d(256, 256),
+                cv::Vec2d(0, 256),
+        };
+
+        cv::Mat H = cv::findHomography( corners, dst_points );
+
+        std::cout << H << std::endl;
+        std::cout << H.inv() << std::endl; // inverse of the matrix
+
+
+        cv::Mat warped_img;
+        cv::warpPerspective(input_img, warped_img, H, cv::Size(256,256));
+
+        // TODO find correct rotation
+        // TODO match type
+
+        //cv::Mat warped_img;
+        cv::warpPerspective(img_0p, input_img, H, cv::Size(input_img.cols,input_img.rows), cv::WARP_INVERSE_MAP, cv::BORDER_TRANSPARENT);
+
+        cv::imshow("warped", warped_img);
+        cv::waitKey(0);
+
+        cv::imshow("original", input_img);
+        cv::waitKey(0);
+
+
+
+    }*/
+
+
+
+
+
+
+
+
+
 
     //====houghProb
 
@@ -236,6 +297,43 @@ int main( int argc, char* argv[] ) {
                 std::cout << fin_img.channels() << std::endl;
 
                 cv::imshow("corners", img_corners);
+
+
+                //========== HOMOGRAPHY =============
+                std::vector<mcv::boundary>& boundaries = be.get_boundaries();
+                for(mcv::boundary& boundary : boundaries){
+                    std::vector<cv::Vec2d> corners;
+                    for(cv::Vec2i& corner : boundary.corners){
+                        corners.push_back(cv::Vec2d(corner[0],corner[1]));
+                    }
+
+
+                    std::vector< cv::Vec2d > dst_points = {
+                            cv::Vec2d(0, 0),
+                            cv::Vec2d(256, 0),
+                            cv::Vec2d(256, 256),
+                            cv::Vec2d(0, 256),
+                    };
+
+                    cv::Mat H = cv::findHomography( corners, dst_points );
+
+                    std::cout << H << std::endl;
+                    std::cout << H.inv() << std::endl; // inverse of the matrix
+
+
+                    cv::Mat warped_img;
+                    cv::warpPerspective(grayscale, warped_img, H, cv::Size(256,256));
+
+                    // TODO find correct rotation
+                    // TODO match type
+
+                    cv::warpPerspective(img_0p, frame, H, cv::Size(frame.cols,frame.rows), cv::WARP_INVERSE_MAP, cv::BORDER_TRANSPARENT);
+
+                }
+
+
+                cv::imshow("original", frame);
+
 
                 //==== hough lines
 
