@@ -5,6 +5,8 @@
 #include "include/utils.h"
 #include "include/speedometer.h"
 #include "include/boundary_extractor.h"
+#include "include/marker.h"
+#include "include/feature_drawer.h"
 
 using namespace std;
 
@@ -28,17 +30,41 @@ void mouse_callback(int event, int x, int y, int flag, void* userdata){
 
 int main( int argc, char* argv[] ) {
 
-    cv::Mat img_0p;
-    cv::Mat img_1p;
-    img_0p = cv::imread("data/0P.png");
-    img_1p = cv::imread("data/1P.png");
+
+    const cv::Mat img_0p = cv::imread("data/0P.png");
+    const cv::Mat img_1p = cv::imread("data/1P.png");
+    const cv::Mat img_0m = cv::imread("data/0M.png", cv::IMREAD_GRAYSCALE);
+    const cv::Mat img_1m = cv::imread("data/1M.png", cv::IMREAD_GRAYSCALE);
 
 
-    cv::imshow("0P",img_0p);
+    /*cv::imshow("0P",img_0p);
     cv::waitKey(0);
 
     cv::imshow("1P",img_1p);
     cv::waitKey(0);
+
+    cv::imshow("0M",img_0m);
+    cv::waitKey(0);
+
+    cv::imshow("1M",img_1m);
+    cv::waitKey(0);*/
+
+    cv::Mat img_0m_color = cv::imread("data/0M.png");
+    cv::Mat img_1m_color = cv::imread("data/1M.png");
+
+    mcv::feature_drawer::draw_rect(img_0m_color,mcv::marker::RECT_0);
+
+    cv::imshow("0M_color",img_0m_color);
+    cv::waitKey(0);
+
+    mcv::feature_drawer::draw_rect(img_1m_color,mcv::marker::RECT_0);
+    mcv::feature_drawer::draw_rect(img_1m_color,mcv::marker::RECT_90);
+    mcv::feature_drawer::draw_rect(img_1m_color,mcv::marker::RECT_180);
+    mcv::feature_drawer::draw_rect(img_1m_color,mcv::marker::RECT_270);
+
+    cv::imshow("1M_color",img_1m_color);
+    cv::waitKey(0);
+
 
 
     /*
@@ -323,6 +349,15 @@ int main( int argc, char* argv[] ) {
 
                     cv::Mat warped_img;
                     cv::warpPerspective(grayscale, warped_img, H, cv::Size(256,256));
+
+                    //Calculate threshold image
+                    int max_value;
+                    cv::Mat hist_ = mcv::compute_hist(image_gray, max_value);
+                    cv::Mat normHist = mcv::normalize_hist(hist_, image_gray);
+                    int threshold = mcv::compute_Otsu_thresholding(normHist);
+                    cv::Mat warped_img_th = mcv::image_threshold(threshold, image_gray);
+                    // Detect orientation
+                    mcv::marker::detect_orientation(warped_img);
 
                     // TODO find correct rotation
                     // TODO match type

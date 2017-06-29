@@ -19,6 +19,7 @@ set(SOURCE_FILES
         include/boundary_extractor.cpp
         include/utils.cpp
         include/speedometer.cpp
+        include/marker.cpp
         )
 
 # Setup default installation dir

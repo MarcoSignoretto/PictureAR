@@ -6,9 +6,15 @@
 #define PROJECT_FEATURE_DRAWER_H
 
 
-class feature_drawer {
+#include <opencv2/core/mat.hpp>
 
-};
+namespace mcv{
+    namespace feature_drawer{
+        // TODO implements
+        void draw_rect(cv::Mat& dst, const std::vector<cv::Point>& rect);
+
+    }
+}
 
 
 #endif //PROJECT_FEATURE_DRAWER_H
