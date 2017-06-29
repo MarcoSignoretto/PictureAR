@@ -65,6 +65,39 @@ int main( int argc, char* argv[] ) {
     cv::imshow("1M_color",img_1m_color);
     cv::waitKey(0);
 
+    int orientation = mcv::marker::detect_orientation(img_0m);
+
+    //cv::Mat_<double> rotation_matrix = mcv::marker::calculate_rotation_matrix(90); TODO fuck this doesn't work!!
+    //cout << rotation_matrix << endl;
+    int rotation_degree = 90;
+
+    double radiants = 0.0;
+    switch(rotation_degree){
+        case 0:
+            break;
+        case 90:
+            radiants = CV_PI/2.0;
+            break;
+        case 180:
+            radiants = CV_PI;
+            break;
+        case 270:
+            radiants = (3.0/2.0)*CV_PI;
+            break;
+        default:
+            throw std::invalid_argument("only 0,90,180,270 degree are supported");
+    }
+    float raw_data[9] = { (float)cos(radiants), (float)-sin(radiants), 0.0, (float)sin(radiants), (float)cos(radiants), 0.0, 0.0, 0.0, 1.0 };
+    //double raw_data[9] = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0 };
+    cv::Mat res = cv::Mat(3, 3, CV_32F, raw_data);
+    cout << res << endl;
+
+    // TODO res calculated doesn't work
+    cv::Mat warped_img;
+    cv::warpPerspective(img_1m_color, warped_img, res, cv::Size(512,512));
+
+    cv::imshow("1M_color",warped_img);
+    cv::waitKey(0);
 
 
     /*

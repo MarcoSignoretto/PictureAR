@@ -41,6 +41,10 @@ namespace mcv{
          */
         int detect_orientation(const cv::Mat& warped_image);
 
+        cv::Mat calculate_rotation_matrix(int rotation_degree);
+
+        void rotate(cv::Mat& img, int rotation_degree);
+
     }
 }
 
