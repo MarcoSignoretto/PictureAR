@@ -50,7 +50,7 @@ int main( int argc, char* argv[] ) {
     int threshold_img_1m = mcv::compute_Otsu_thresholding(normHist_img_1m);
     const cv::Mat img_1m_th = mcv::image_threshold(threshold_img_1m, img_1m);
 
-    float match = mcv::marker::compute_matching(img_0m_th,img_0m_th); // resutl to 1 correct
+    //float match = mcv::marker::compute_matching(img_0m_th,img_0m_th); // resutl to 1 correct
 
 
 
@@ -114,7 +114,7 @@ int main( int argc, char* argv[] ) {
 
     const std::string filename = "data/test2.jpg";
 
-    cv::Mat input_img;
+    /*cv::Mat input_img;
     input_img = cv::imread(filename);
 
     cv::imshow("image",input_img);
@@ -138,7 +138,7 @@ int main( int argc, char* argv[] ) {
 
     cv::imshow("image_th",frame_th);
 
-    cv::waitKey(0);
+    cv::waitKey(0);*/
 
 
 
@@ -178,7 +178,7 @@ int main( int argc, char* argv[] ) {
 
     ///=== begin boundary extractor + corners ==
 
-    cv::Mat fin_img;
+    /*cv::Mat fin_img;
     cv::Mat boundaries_img;
 
     // TODO extract thresholded image from boundaries
@@ -289,7 +289,7 @@ int main( int argc, char* argv[] ) {
 
 
 
-    }
+    }*/
 
 
 
@@ -331,7 +331,7 @@ int main( int argc, char* argv[] ) {
 
     cout << "================ END ===============" << endl;
 
-    std::string video_input_name = "data/test_video1.mp4";
+    std::string video_input_name = "data/test_video2.mp4";
 
     const int width = 256; // experimental good window width for current problem
     const int height = 256; // experimental good window height for current problem
@@ -456,6 +456,8 @@ int main( int argc, char* argv[] ) {
                     float match_0m = mcv::marker::compute_matching(img_0m_th, warped_img);
                     float match_1m = mcv::marker::compute_matching(img_1m_th, warped_img);
 
+                    //cout << "LEO: " << match_0m << ", VAN: " << match_1m << endl;
+
                     if (match_0m > 0.92 || match_1m > 0.92) {
 
                         const cv::Mat &matched_image = (match_0m > match_1m) ? img_0p : img_1p;
@@ -463,7 +465,7 @@ int main( int argc, char* argv[] ) {
                         cv::Mat output_img;
 
                         cv::warpPerspective(matched_image, output_img, picture_rotation, cv::Size(256, 256));
-                        cv::warpPerspective(output_img, input_img, H, cv::Size(input_img.cols, input_img.rows), cv::WARP_INVERSE_MAP,
+                        cv::warpPerspective(output_img, frame, H, cv::Size(frame.cols, frame.rows), cv::WARP_INVERSE_MAP,
                                             cv::BORDER_TRANSPARENT);
                     }
 
