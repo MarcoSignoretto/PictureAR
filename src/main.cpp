@@ -94,10 +94,10 @@ int main( int argc, char* argv[] ) {
      *
      */
 
-    const std::string filename = "data/test1.jpg";
+    const std::string filename = "data/test2.jpg";
 
     cv::Mat input_img;
-    input_img = cv::imread("data/test1.jpg");
+    input_img = cv::imread(filename);
 
     cv::imshow("image",input_img);
 
@@ -236,7 +236,7 @@ int main( int argc, char* argv[] ) {
 
         cv::Mat rotation_matrix;
         cv::Mat picture_rotation;
-        mcv::marker::calculate_rotation_matrix(rotation_matrix, orientation);// TODO optimize this
+        mcv::marker::calculate_rotation_matrix(rotation_matrix, orientation);
         mcv::marker::calculate_picture_rotation(picture_rotation, orientation);
         cout << rotation_matrix << endl;
 
@@ -307,7 +307,7 @@ int main( int argc, char* argv[] ) {
 
     cout << "================ END ===============" << endl;
 
-    std::string video_input_name = "data/test_video2.mp4";
+    std::string video_input_name = "data/test_video1.mp4";
 
     const int width = 256; // experimental good window width for current problem
     const int height = 256; // experimental good window height for current problem
@@ -352,7 +352,6 @@ int main( int argc, char* argv[] ) {
 
 
                 cv::cvtColor(frame, grayscale, CV_RGB2GRAY);
-                std::cout << grayscale.channels() << std::endl;
 
                 //Calculate threshold image
                 int max_value;
@@ -417,17 +416,21 @@ int main( int argc, char* argv[] ) {
 
                     // Calculate rotation matrixes
                     cv::Mat rotation_matrix;
+                    cv::Mat picture_rotation;
                     mcv::marker::calculate_rotation_matrix(rotation_matrix, orientation);
+                    mcv::marker::calculate_picture_rotation(picture_rotation, orientation);
 
 
                     // Set marker in correct orientation for matching
                     cv::warpPerspective(warped_img, warped_img, rotation_matrix.inv(), cv::Size(256,256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
 
+                    cv::imshow("warped_marker", warped_img);
+
                     // TODO match type
 
                     // Report correct image in original image
                     cv::Mat output_img;
-                    cv::warpPerspective(img_0p, output_img, rotation_matrix, cv::Size(256,256));
+                    cv::warpPerspective(img_0p, output_img, picture_rotation, cv::Size(256,256));
                     cv::warpPerspective(output_img, frame, H, cv::Size(frame.cols,frame.rows), cv::WARP_INVERSE_MAP, cv::BORDER_TRANSPARENT);
 
                 }

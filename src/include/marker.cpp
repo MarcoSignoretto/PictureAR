@@ -108,6 +108,7 @@ void mcv::marker::rotate(cv::Mat &img, int rotation_degree) {
 
 }
 
-void mcv::marker::calculate_picture_rotation(cv::Mat &rotation_matrix, int rotation_degree) {
-    calculate_rotation_matrix(rotation_matrix, (rotation_degree+180)%360);// TODO test
+void mcv::marker::calculate_picture_rotation(cv::Mat &rotation_matrix, int rotation_degree) { // TODO understand better because this happens
+    if(rotation_degree == 90 || rotation_degree == 270) rotation_degree = (rotation_degree+180)%360;
+    calculate_rotation_matrix(rotation_matrix, rotation_degree);// TODO optimize, avoid to calculate new matrix
 }
