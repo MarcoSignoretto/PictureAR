@@ -56,25 +56,48 @@ int mcv::marker::detect_orientation(const cv::Mat& warped_image) {
     return res;// TODO change
 }
 
-cv::Mat mcv::marker::calculate_rotation_matrix(int rotation_degree) {
-    double radiants = 0.0;
+void mcv::marker::calculate_rotation_matrix(cv::Mat& rotation_matrix, int rotation_degree) {
+    float radiants = 0.0;
+    float offset_x = 0.0;
+    float offset_y = 0.0;
     switch(rotation_degree){
         case 0:
             break;
         case 90:
-            radiants = CV_PI/2.0;
+            radiants = (float)(CV_PI/2.0);
+            offset_x = 256.0;
+            offset_y = 0.0;
             break;
         case 180:
-            radiants = CV_PI;
+            radiants = (float)CV_PI;
+            offset_x = 256.0;
+            offset_y = 256.0;
             break;
         case 270:
-            radiants = (3.0/2.0)*CV_PI;
+            radiants = (float)((3.0/2.0)*CV_PI);
+            offset_x = 0.0;
+            offset_y = 256.0;
             break;
         default:
             throw std::invalid_argument("only 0,90,180,270 degree are supported");
     }
-    double raw_data[9] = { cos(radiants), -sin(radiants), 0.0, sin(radiants), cos(radiants), 0.0, 0.0, 0.0, 1.0 };
-    return cv::Mat(3, 3, CV_64F, raw_data);
+    // TODO init matrix in another way, in this way raw_data allocated in stack and mat create only reference no copy ( iterate with pointer to populate) rotation_matrix = cv::Mat(3, 3, CV_32F, raw_data doesn't work);
+    float raw_data[] = {
+            (float)cos(radiants), (float)-sin(radiants), offset_x,
+            (float)sin(radiants), (float)cos(radiants), offset_y,
+            0.0, 0.0, 1.0
+    };
+    rotation_matrix = cv::Mat(3, 3, CV_32F);
+    rotation_matrix.at<float>(0,0) = raw_data[0];
+    rotation_matrix.at<float>(0,1) = raw_data[1];
+    rotation_matrix.at<float>(0,2) = raw_data[2];
+    rotation_matrix.at<float>(1,0) = raw_data[3];
+    rotation_matrix.at<float>(1,1) = raw_data[4];
+    rotation_matrix.at<float>(1,2) = raw_data[5];
+    rotation_matrix.at<float>(2,0) = raw_data[6];
+    rotation_matrix.at<float>(2,1) = raw_data[7];
+    rotation_matrix.at<float>(2,2) = raw_data[8];
+
 
 }
 
@@ -83,4 +106,8 @@ void mcv::marker::rotate(cv::Mat &img, int rotation_degree) {
     // TODO complete
 
 
+}
+
+void mcv::marker::calculate_picture_rotation(cv::Mat &rotation_matrix, int rotation_degree) {
+    calculate_rotation_matrix(rotation_matrix, (rotation_degree+180)%360);// TODO test
 }

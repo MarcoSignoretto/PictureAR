@@ -49,7 +49,9 @@ int main( int argc, char* argv[] ) {
     cv::imshow("1M",img_1m);
     cv::waitKey(0);*/
 
-    cv::Mat img_0m_color = cv::imread("data/0M.png");
+    // ============ ROTATION TEST ================
+
+    /*cv::Mat img_0m_color = cv::imread("data/0M.png");
     cv::Mat img_1m_color = cv::imread("data/1M.png");
 
     mcv::feature_drawer::draw_rect(img_0m_color,mcv::marker::RECT_0);
@@ -67,37 +69,21 @@ int main( int argc, char* argv[] ) {
 
     int orientation = mcv::marker::detect_orientation(img_0m);
 
-    //cv::Mat_<double> rotation_matrix = mcv::marker::calculate_rotation_matrix(90); TODO fuck this doesn't work!!
-    //cout << rotation_matrix << endl;
-    int rotation_degree = 90;
+    cv::Mat rotation_matrix;
+    mcv::marker::calculate_rotation_matrix(rotation_matrix, orientation);
+    cout << rotation_matrix << endl;
 
-    double radiants = 0.0;
-    switch(rotation_degree){
-        case 0:
-            break;
-        case 90:
-            radiants = CV_PI/2.0;
-            break;
-        case 180:
-            radiants = CV_PI;
-            break;
-        case 270:
-            radiants = (3.0/2.0)*CV_PI;
-            break;
-        default:
-            throw std::invalid_argument("only 0,90,180,270 degree are supported");
-    }
-    float raw_data[9] = { (float)cos(radiants), (float)-sin(radiants), 0.0, (float)sin(radiants), (float)cos(radiants), 0.0, 0.0, 0.0, 1.0 };
-    //double raw_data[9] = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0 };
-    cv::Mat res = cv::Mat(3, 3, CV_32F, raw_data);
-    cout << res << endl;
 
-    // TODO res calculated doesn't work
+
+
     cv::Mat warped_img;
-    cv::warpPerspective(img_1m_color, warped_img, res, cv::Size(512,512));
+    cv::warpPerspective(img_1m_color, warped_img, rotation_matrix, cv::Size(256,256));
+
+    cv::imshow("1M_color_",img_1m_color);
+    cv::waitKey(0);
 
     cv::imshow("1M_color",warped_img);
-    cv::waitKey(0);
+    cv::waitKey(0);*/
 
 
     /*
@@ -173,6 +159,14 @@ int main( int argc, char* argv[] ) {
     /*cv::Mat fin_img;
     cv::Mat boundaries_img;
 
+    //Calculate threshold image
+    int max_value;
+    cv::Mat hist_ = mcv::compute_hist(image_gray, max_value);
+    cv::Mat normHist = mcv::normalize_hist(hist_, image_gray);
+    int threshold = mcv::compute_Otsu_thresholding(normHist);
+    cv::Mat frame_th = mcv::image_threshold(threshold, image_gray);
+
+    // TODO extract thresholded image from boundaries
     mcv::boundary_extractor be(image_gray);
     be.find_boundaries();
     be.keep_between(300,1000);
@@ -205,6 +199,7 @@ int main( int argc, char* argv[] ) {
     cv::imshow("live", fin_img);
     cv::waitKey(0);
 
+    //===== threshold of input
 
 
     std::vector<mcv::boundary>& boundaries = be.get_boundaries();
@@ -228,16 +223,41 @@ int main( int argc, char* argv[] ) {
         std::cout << H.inv() << std::endl; // inverse of the matrix
 
 
+
+
         cv::Mat warped_img;
-        cv::warpPerspective(input_img, warped_img, H, cv::Size(256,256));
+        cv::warpPerspective(frame_th, warped_img, H.inv(), cv::Size(256,256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
+
+        cv::imshow("warped_img",warped_img);
+        cv::waitKey(0);
 
         // TODO find correct rotation
-        // TODO match type
+        int orientation = mcv::marker::detect_orientation(warped_img);
+
+        cv::Mat rotation_matrix;
+        cv::Mat picture_rotation;
+        mcv::marker::calculate_rotation_matrix(rotation_matrix, orientation);// TODO optimize this
+        mcv::marker::calculate_picture_rotation(picture_rotation, orientation);
+        cout << rotation_matrix << endl;
+
+
+
+
+        cv::warpPerspective(warped_img, warped_img, rotation_matrix.inv(), cv::Size(256,256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
+
+
+        // TODO match type between warped_img and samples ( img_0M, img_1M)
 
         //cv::Mat warped_img;
-        cv::warpPerspective(img_0p, input_img, H, cv::Size(input_img.cols,input_img.rows), cv::WARP_INVERSE_MAP, cv::BORDER_TRANSPARENT);
+        cv::Mat output_img;
+
+        cv::warpPerspective(img_0p, output_img, picture_rotation, cv::Size(256,256));
+        cv::warpPerspective(output_img, input_img, H, cv::Size(input_img.cols,input_img.rows), cv::WARP_INVERSE_MAP, cv::BORDER_TRANSPARENT);
 
         cv::imshow("warped", warped_img);
+        cv::waitKey(0);
+
+        cv::imshow("rotated", output_img);
         cv::waitKey(0);
 
         cv::imshow("original", input_img);
@@ -287,7 +307,7 @@ int main( int argc, char* argv[] ) {
 
     cout << "================ END ===============" << endl;
 
-    std::string video_input_name = "data/test_video1.mp4";
+    std::string video_input_name = "data/test_video2.mp4";
 
     const int width = 256; // experimental good window width for current problem
     const int height = 256; // experimental good window height for current problem
@@ -329,8 +349,19 @@ int main( int argc, char* argv[] ) {
                 end = true;
             }else {
 
+
+
                 cv::cvtColor(frame, grayscale, CV_RGB2GRAY);
                 std::cout << grayscale.channels() << std::endl;
+
+                //Calculate threshold image
+                int max_value;
+                cv::Mat hist_ = mcv::compute_hist(grayscale, max_value);
+                cv::Mat normHist = mcv::normalize_hist(hist_, grayscale);
+                int threshold = mcv::compute_Otsu_thresholding(normHist);
+                cv::Mat frame_th = mcv::image_threshold(threshold, grayscale);
+
+                // Boundary extraction
 
                 mcv::boundary_extractor be(grayscale);
                 be.find_boundaries();
@@ -353,7 +384,7 @@ int main( int argc, char* argv[] ) {
                 be.draw_boundaries(grayscale, fin_img); // TODO remove or convert like corners
                 be.draw_boundaries_corners(fin_img);
                 //be.draw_boundaries("boundaries.png");
-                std::cout << fin_img.channels() << std::endl;
+
 
                 cv::imshow("corners", img_corners);
 
@@ -361,6 +392,8 @@ int main( int argc, char* argv[] ) {
                 //========== HOMOGRAPHY =============
                 std::vector<mcv::boundary>& boundaries = be.get_boundaries();
                 for(mcv::boundary& boundary : boundaries){
+
+                    // find Homography
                     std::vector<cv::Vec2d> corners;
                     for(cv::Vec2i& corner : boundary.corners){
                         corners.push_back(cv::Vec2d(corner[0],corner[1]));
@@ -376,26 +409,26 @@ int main( int argc, char* argv[] ) {
 
                     cv::Mat H = cv::findHomography( corners, dst_points );
 
-                    std::cout << H << std::endl;
-                    std::cout << H.inv() << std::endl; // inverse of the matrix
-
-
                     cv::Mat warped_img;
-                    cv::warpPerspective(grayscale, warped_img, H, cv::Size(256,256));
+                    cv::warpPerspective(frame_th, warped_img, H.inv(), cv::Size(256,256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
 
-                    //Calculate threshold image
-                    int max_value;
-                    cv::Mat hist_ = mcv::compute_hist(image_gray, max_value);
-                    cv::Mat normHist = mcv::normalize_hist(hist_, image_gray);
-                    int threshold = mcv::compute_Otsu_thresholding(normHist);
-                    cv::Mat warped_img_th = mcv::image_threshold(threshold, image_gray);
                     // Detect orientation
-                    mcv::marker::detect_orientation(warped_img);
+                    int orientation = mcv::marker::detect_orientation(warped_img);
 
-                    // TODO find correct rotation
+                    // Calculate rotation matrixes
+                    cv::Mat rotation_matrix;
+                    mcv::marker::calculate_rotation_matrix(rotation_matrix, orientation);
+
+
+                    // Set marker in correct orientation for matching
+                    cv::warpPerspective(warped_img, warped_img, rotation_matrix.inv(), cv::Size(256,256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
+
                     // TODO match type
 
-                    cv::warpPerspective(img_0p, frame, H, cv::Size(frame.cols,frame.rows), cv::WARP_INVERSE_MAP, cv::BORDER_TRANSPARENT);
+                    // Report correct image in original image
+                    cv::Mat output_img;
+                    cv::warpPerspective(img_0p, output_img, rotation_matrix, cv::Size(256,256));
+                    cv::warpPerspective(output_img, frame, H, cv::Size(frame.cols,frame.rows), cv::WARP_INVERSE_MAP, cv::BORDER_TRANSPARENT);
 
                 }
 
