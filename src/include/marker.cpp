@@ -5,6 +5,7 @@
 #include "marker.h"
 #include <stdexcept>
 #include <iostream>
+#include <assert.h>
 
 
 int mcv::marker::detect_orientation(const cv::Mat& warped_image) {
@@ -111,4 +112,23 @@ void mcv::marker::rotate(cv::Mat &img, int rotation_degree) {
 void mcv::marker::calculate_picture_rotation(cv::Mat &rotation_matrix, int rotation_degree) { // TODO understand better because this happens
     if(rotation_degree == 90 || rotation_degree == 270) rotation_degree = (rotation_degree+180)%360;
     calculate_rotation_matrix(rotation_matrix, rotation_degree);// TODO optimize, avoid to calculate new matrix
+}
+
+float mcv::marker::compute_matching(const cv::Mat &marker_extracted, const cv::Mat &marker_candidate) {
+
+    assert(marker_extracted.rows == marker_candidate.rows && marker_extracted.cols == marker_candidate.cols && "Dimensions mismatch");
+    int sum = 0;
+    int max = marker_extracted.rows*marker_extracted.cols;
+
+    const uchar *p_marker_extracted;
+    const uchar *p_marker_candidate;
+    for(int y = 0; y < marker_extracted.rows; ++y) {
+        p_marker_extracted = marker_extracted.ptr<uchar>(y);
+        p_marker_candidate = marker_candidate.ptr<uchar>(y);
+        for (int x = 0; x < marker_extracted.cols; ++x) {
+            if(p_marker_extracted[x] == p_marker_candidate[x])++sum;
+        }
+    }
+
+    return (float)sum/(float)max;
 }

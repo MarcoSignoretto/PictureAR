@@ -47,6 +47,8 @@ namespace mcv{
 
         void rotate(cv::Mat& img, int rotation_degree);
 
+        float compute_matching(const cv::Mat& marker_extracted, const cv::Mat& marker_candidate);
+
     }
 }
 

@@ -36,6 +36,24 @@ int main( int argc, char* argv[] ) {
     const cv::Mat img_0m = cv::imread("data/0M.png", cv::IMREAD_GRAYSCALE);
     const cv::Mat img_1m = cv::imread("data/1M.png", cv::IMREAD_GRAYSCALE);
 
+    //Threshold img_0m
+    int max_value_img_0m;
+    cv::Mat hist_img_0m = mcv::compute_hist(img_0m, max_value_img_0m);
+    cv::Mat normHist_img_0m = mcv::normalize_hist(hist_img_0m, img_0m);
+    int threshold_img_0m = mcv::compute_Otsu_thresholding(normHist_img_0m);
+    const cv::Mat img_0m_th = mcv::image_threshold(threshold_img_0m, img_0m);
+
+    // Threshold img_1m
+    int max_value_img_1m;
+    cv::Mat hist_img_1m = mcv::compute_hist(img_1m, max_value_img_1m);
+    cv::Mat normHist_img_1m = mcv::normalize_hist(hist_img_1m, img_1m);
+    int threshold_img_1m = mcv::compute_Otsu_thresholding(normHist_img_1m);
+    const cv::Mat img_1m_th = mcv::image_threshold(threshold_img_1m, img_1m);
+
+    float match = mcv::marker::compute_matching(img_0m_th,img_0m_th); // resutl to 1 correct
+
+
+
 
     /*cv::imshow("0P",img_0p);
     cv::waitKey(0);
@@ -105,7 +123,7 @@ int main( int argc, char* argv[] ) {
 
     const cv::Mat image_gray = cv::imread(filename, cv::IMREAD_GRAYSCALE);
 
-    /*//Calculate histogram
+    //Calculate histogram
     int max_value;
     cv::Mat hist_ = mcv::compute_hist(image_gray, max_value);
 
@@ -116,11 +134,15 @@ int main( int argc, char* argv[] ) {
     int threshold = mcv::compute_Otsu_thresholding(normHist);
 
     //generate image from threshold
-    cv::Mat image = mcv::image_threshold(threshold, image_gray);
+    cv::Mat frame_th = mcv::image_threshold(threshold, image_gray);
 
-    cv::imshow("image_th",image);
+    cv::imshow("image_th",frame_th);
 
-    cv::waitKey(0);*/
+    cv::waitKey(0);
+
+
+
+
     /*
 
 
@@ -154,17 +176,10 @@ int main( int argc, char* argv[] ) {
     cv::waitKey(0);*/
     //===END
 
-    //=== begin boundary extractor + corners ==
+    ///=== begin boundary extractor + corners ==
 
-    /*cv::Mat fin_img;
+    cv::Mat fin_img;
     cv::Mat boundaries_img;
-
-    //Calculate threshold image
-    int max_value;
-    cv::Mat hist_ = mcv::compute_hist(image_gray, max_value);
-    cv::Mat normHist = mcv::normalize_hist(hist_, image_gray);
-    int threshold = mcv::compute_Otsu_thresholding(normHist);
-    cv::Mat frame_th = mcv::image_threshold(threshold, image_gray);
 
     // TODO extract thresholded image from boundaries
     mcv::boundary_extractor be(image_gray);
@@ -203,21 +218,21 @@ int main( int argc, char* argv[] ) {
 
 
     std::vector<mcv::boundary>& boundaries = be.get_boundaries();
-    for(mcv::boundary& boundary : boundaries){
+    for(mcv::boundary& boundary : boundaries) {
         std::vector<cv::Vec2d> corners;
-        for(cv::Vec2i& corner : boundary.corners){
-            corners.push_back(cv::Vec2d(corner[0],corner[1]));
+        for (cv::Vec2i &corner : boundary.corners) {
+            corners.push_back(cv::Vec2d(corner[0], corner[1]));
         }
 
 
-        std::vector< cv::Vec2d > dst_points = {
+        std::vector<cv::Vec2d> dst_points = {
                 cv::Vec2d(0, 0),
                 cv::Vec2d(256, 0),
                 cv::Vec2d(256, 256),
                 cv::Vec2d(0, 256),
         };
 
-        cv::Mat H = cv::findHomography( corners, dst_points );
+        cv::Mat H = cv::findHomography(corners, dst_points);
 
         std::cout << H << std::endl;
         std::cout << H.inv() << std::endl; // inverse of the matrix
@@ -226,9 +241,10 @@ int main( int argc, char* argv[] ) {
 
 
         cv::Mat warped_img;
-        cv::warpPerspective(frame_th, warped_img, H.inv(), cv::Size(256,256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
+        cv::warpPerspective(frame_th, warped_img, H.inv(), cv::Size(256, 256), cv::WARP_INVERSE_MAP,
+                            cv::BORDER_DEFAULT);
 
-        cv::imshow("warped_img",warped_img);
+        cv::imshow("warped_img", warped_img);
         cv::waitKey(0);
 
         // TODO find correct rotation
@@ -241,31 +257,39 @@ int main( int argc, char* argv[] ) {
         cout << rotation_matrix << endl;
 
 
+        cv::warpPerspective(warped_img, warped_img, rotation_matrix.inv(), cv::Size(256, 256), cv::WARP_INVERSE_MAP,
+                            cv::BORDER_DEFAULT);
 
 
-        cv::warpPerspective(warped_img, warped_img, rotation_matrix.inv(), cv::Size(256,256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
+        float match_0m = mcv::marker::compute_matching(img_0m_th, warped_img);
+        float match_1m = mcv::marker::compute_matching(img_1m_th, warped_img);
 
+        if (match_0m > 0.92 || match_1m > 0.92) {
 
-        // TODO match type between warped_img and samples ( img_0M, img_1M)
+            const cv::Mat &matched_image = (match_0m > match_1m) ? img_0p : img_1p;
 
-        //cv::Mat warped_img;
-        cv::Mat output_img;
+            cv::Mat output_img;
 
-        cv::warpPerspective(img_0p, output_img, picture_rotation, cv::Size(256,256));
-        cv::warpPerspective(output_img, input_img, H, cv::Size(input_img.cols,input_img.rows), cv::WARP_INVERSE_MAP, cv::BORDER_TRANSPARENT);
+            cv::warpPerspective(matched_image, output_img, picture_rotation, cv::Size(256, 256));
+            cv::warpPerspective(output_img, input_img, H, cv::Size(input_img.cols, input_img.rows), cv::WARP_INVERSE_MAP,
+                                cv::BORDER_TRANSPARENT);
+
+            cv::imshow("rotated", output_img);
+            cv::waitKey(0);
+
+        }
 
         cv::imshow("warped", warped_img);
         cv::waitKey(0);
 
-        cv::imshow("rotated", output_img);
-        cv::waitKey(0);
+
 
         cv::imshow("original", input_img);
         cv::waitKey(0);
 
 
 
-    }*/
+    }
 
 
 
@@ -425,13 +449,23 @@ int main( int argc, char* argv[] ) {
                     cv::warpPerspective(warped_img, warped_img, rotation_matrix.inv(), cv::Size(256,256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
 
                     cv::imshow("warped_marker", warped_img);
+                    // TODO search why video doesn't match
 
-                    // TODO match type
+                    // ============ MATCHING
 
-                    // Report correct image in original image
-                    cv::Mat output_img;
-                    cv::warpPerspective(img_0p, output_img, picture_rotation, cv::Size(256,256));
-                    cv::warpPerspective(output_img, frame, H, cv::Size(frame.cols,frame.rows), cv::WARP_INVERSE_MAP, cv::BORDER_TRANSPARENT);
+                    float match_0m = mcv::marker::compute_matching(img_0m_th, warped_img);
+                    float match_1m = mcv::marker::compute_matching(img_1m_th, warped_img);
+
+                    if (match_0m > 0.92 || match_1m > 0.92) {
+
+                        const cv::Mat &matched_image = (match_0m > match_1m) ? img_0p : img_1p;
+
+                        cv::Mat output_img;
+
+                        cv::warpPerspective(matched_image, output_img, picture_rotation, cv::Size(256, 256));
+                        cv::warpPerspective(output_img, input_img, H, cv::Size(input_img.cols, input_img.rows), cv::WARP_INVERSE_MAP,
+                                            cv::BORDER_TRANSPARENT);
+                    }
 
                 }
 
