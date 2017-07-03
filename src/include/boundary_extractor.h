@@ -49,6 +49,8 @@ namespace mcv{
         // TODO comment
         void draw_boundaries(const cv::Mat& image, cv::Mat& fin_img);
 
+        void create_boundaries_image(cv::Mat& image);
+
         void draw_boundaries(cv::Mat& image);
 
         // TODO comment

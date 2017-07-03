@@ -30,6 +30,13 @@ namespace mcv{
                 cv::Point(OFFSET+HEIGHT, 256-OFFSET)
         };
 
+        const std::vector<cv::Vec2d> DST_POINTS = {
+                cv::Vec2d(0, 0),
+                cv::Vec2d(256, 0),
+                cv::Vec2d(256, 256),
+                cv::Vec2d(0, 256),
+        };
+
         const int BLACK = 0;
         const int WHITE = 255;
 

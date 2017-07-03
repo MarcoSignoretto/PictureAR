@@ -358,13 +358,21 @@ void boundary_extractor::draw_boundaries(const cv::Mat& image, cv::Mat& fin_img)
 }
 
 
-void boundary_extractor::draw_boundaries(cv::Mat& image) {
+void boundary_extractor::create_boundaries_image(cv::Mat& image) {
     image = cv::Mat::zeros(image_.rows, image_.cols, CV_8UC1); // image is larger of 1 px respect to input
 
     for(boundary& b : boundaries_){
         draw_boundary(image,b); // draw red line into image respect to boundary pixels
     }
 
+}
+
+void boundary_extractor::draw_boundaries(cv::Mat &image) {
+    assert(image.channels() == 3 && "Invalid channel number");
+
+    for(boundary& b : boundaries_){
+        draw_boundary(image, b); // draw red line into image respect to boundary pixels
+    }
 }
 
 void boundary_extractor::draw_boundaries_corners(cv::Mat& image){
@@ -424,14 +432,25 @@ inline void boundary_extractor::draw_corners(cv::Mat& image, const boundary &b) 
 }
 
 inline void boundary_extractor::draw_boundary(cv::Mat& image, const boundary &b) {
-    for(cv::Vec2i v : b.points){
-        int j = v[0]+1;// +1 is in order to add padding in image
-        int i = v[1]+1;
-        image.at<uchar>(i,j) = 255;
+
+    assert((image.channels() == 1 || image.channels() == 3) && "Invalid channel number");
+    if(image.channels()==1) {
+        for (cv::Vec2i v : b.points) {
+            int j = v[0] + 1;// +1 is in order to add padding in image
+            int i = v[1] + 1;
+            image.at<uchar>(i, j) = 255;
+        }
+    }else{
+        for (cv::Vec2i v : b.points) {
+            int j = v[0] + 1;// +1 is in order to add padding in image
+            int i = v[1] + 1;
+            cv::Vec3b &intensity = image.at<cv::Vec3b>(i, j);
+            intensity[0] = 0;
+            intensity[1] = 0;
+            intensity[2] = 255;
+        }
     }
 }
-
-
 
 void boundary_extractor::print_boundary_lengths() {
     int i=0;
@@ -474,6 +493,8 @@ inline void boundary_extractor::normalize() {
         }
     }
 }
+
+
 
 
 

@@ -235,7 +235,7 @@ int main( int argc, char* argv[] ) {
         //be.compute_corners();
         cout << "Boundaries: " << endl;
         be.print_boundary_lengths();
-        be.draw_boundaries(boundaries_img); // draw boundary image
+        be.create_boundaries_image(boundaries_img); // draw boundary image
 
 
         //===corners
@@ -390,34 +390,31 @@ int main( int argc, char* argv[] ) {
 
         bool end = false;
         if (vc.isOpened()) {
-            /*
-            // experimental good initial window point for current problem
-            cv::Point initial_point{180,270};
-            cv::Point end_point{initial_point.x + width, initial_point.y + height};
+            // Setup frame with fixed resolution
+            vc.set(CV_CAP_PROP_FRAME_WIDTH,640);
+            vc.set(CV_CAP_PROP_FRAME_HEIGHT,480);
 
-            // some initialization
-            cv::Mat channels[3];
-            cv::Mat window_mat(width, height, CV_8UC1);
-            cv::Mat t_mat(width, height, CV_8UC1);
-
-            cv::Mat rho_theta_plane;
-
-            as3::speedometer sm{320,2000};
-            sm.set_output_file("speed.txt");*/
             int frame_number = 1;
 
-            // TODO deallocation problem with following matrix ( maybe fin_img that become colored image)
+
             cv::Mat grayscale;
-            cv::Mat fin_img;
             cv::Mat boundaries_img;
 
             while (!end) {
                 cv::Mat frame;
+
                 vc >> frame; // put frame image Mat  , this operation is blocking until a frame is provided
                 if (frame.empty()) { // if camera frame are infinite but in video no
                     end = true;
                 } else {
+                    cv::Mat frame_debug;
 
+
+
+
+                    if(debug_info) {
+                        frame_debug = frame.clone();
+                    }
 
                     cv::cvtColor(frame, grayscale, CV_RGB2GRAY);
 
@@ -435,7 +432,7 @@ int main( int argc, char* argv[] ) {
                     be.keep_between(200, 1200);
 
 
-                    be.draw_boundaries(boundaries_img);// 1 pixel of padding
+                    be.create_boundaries_image(boundaries_img);// 1 pixel of padding
 
                     //===corners
                     cv::Mat img_corners = cv::Mat::zeros(boundaries_img.rows, boundaries_img.cols,
@@ -450,17 +447,12 @@ int main( int argc, char* argv[] ) {
                     be.compute_corners(img_corners);
                     be.keep_between_corners(4, 4);
 
-                    be.draw_boundaries(grayscale, fin_img); // TODO remove or convert like corners
-                    be.draw_boundaries_corners(fin_img);
-                    //be.draw_boundaries("boundaries.png");
-
-
-                    cv::imshow("corners", img_corners);
 
 
                     //========== HOMOGRAPHY =============
                     std::vector<mcv::boundary> &boundaries = be.get_boundaries();
                     for (mcv::boundary &boundary : boundaries) {
+                        cv::Mat warped_img;
 
                         // find Homography
                         std::vector<cv::Vec2d> corners;
@@ -469,16 +461,9 @@ int main( int argc, char* argv[] ) {
                         }
 
 
-                        std::vector<cv::Vec2d> dst_points = {
-                                cv::Vec2d(0, 0),
-                                cv::Vec2d(256, 0),
-                                cv::Vec2d(256, 256),
-                                cv::Vec2d(0, 256),
-                        };
+                        cv::Mat H = cv::findHomography(corners, mcv::marker::DST_POINTS);
 
-                        cv::Mat H = cv::findHomography(corners, dst_points);
 
-                        cv::Mat warped_img;
                         cv::warpPerspective(frame_th, warped_img, H.inv(), cv::Size(256, 256), cv::WARP_INVERSE_MAP,
                                             cv::BORDER_DEFAULT);
 
@@ -488,7 +473,7 @@ int main( int argc, char* argv[] ) {
                         // Calculate rotation matrixes
                         cv::Mat rotation_matrix;
                         cv::Mat picture_rotation;
-                        mcv::marker::calculate_rotation_matrix(rotation_matrix, orientation);
+                        mcv::marker::calculate_rotation_matrix(rotation_matrix, orientation); // TODO optimize this code
                         mcv::marker::calculate_picture_rotation(picture_rotation, orientation);
 
 
@@ -496,15 +481,12 @@ int main( int argc, char* argv[] ) {
                         cv::warpPerspective(warped_img, warped_img, rotation_matrix.inv(), cv::Size(256, 256),
                                             cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
 
-                        cv::imshow("warped_marker", warped_img);
-                        // TODO search why video doesn't match
-
                         // ============ MATCHING
 
                         float match_0m = mcv::marker::compute_matching(img_0m_th, warped_img);
                         float match_1m = mcv::marker::compute_matching(img_1m_th, warped_img);
 
-                        //cout << "LEO: " << match_0m << ", VAN: " << match_1m << endl;
+
 
                         if (match_0m > 0.92 || match_1m > 0.92) {
 
@@ -518,85 +500,23 @@ int main( int argc, char* argv[] ) {
                                                 cv::BORDER_TRANSPARENT);
                         }
 
+                        if(debug_info){
+                            cv::imshow("warped_marker", warped_img);
+                            cout << "LEO: " << match_0m << ", VAN: " << match_1m << endl;
+                        }
+
                     }
 
 
                     cv::imshow("original", frame);
+                    if (debug_info) {
+                        be.draw_boundaries(frame_debug);
+                        be.draw_boundaries_corners(frame_debug);
 
+                        cv::imshow("corners", img_corners);
+                        cv::imshow("live", frame_debug);
+                    }
 
-                    //==== hough lines
-
-                    /*cv::Mat rho_theta_plane;
-                    cv::Point2f best_rho_theta;
-                    std::vector<cv::Point2f> lines;
-                    int min_points = 50;
-                    mcv::extract_lines(boundaries_img, rho_theta_plane, lines, min_points);
-                    //mcv::compute_rho_theta_plane(boundaries_img,rho_theta_plane, best_rho_theta);
-
-                    for (cv::Point2f& point: lines) {
-                        mcv::line(fin_img,point.y,point.x);
-                    }*/
-
-                    //==== houghline P ( not good on video )
-
-                    /*vector<cv::Vec4i> lines;
-                    cv::HoughLinesP( boundaries_img, lines, 1, CV_PI/180, 70, 40, 10);
-                    for( size_t i = 0; i < lines.size(); i++ )
-                    {
-                        cv::line( fin_img, cv::Point(lines[i][0], lines[i][1]),
-                                  cv::Point(lines[i][2], lines[i][3]), cv::Scalar(255,0,0), 3, 8 );
-                    }*/
-
-                    cv::imshow("live", fin_img);
-
-
-
-
-                    /*// split image in channels ( red is interesting for this problem )
-                    cv::split(frame, channels);
-
-                    // obtain a relevant window of frame and store into window_mat
-                    channels[2](cv::Range(initial_point.y, end_point.y), cv::Range(initial_point.x, end_point.x))
-                            .copyTo(window_mat);
-
-                    // threshold on image with high value of red
-                    cv::threshold(window_mat, t_mat, THRESHOLD, 255, cv::THRESH_BINARY);
-
-                    // In order to have a better line (thin) with few observation an erosion are applied
-                    // the kernel size are found in experimental way
-                    // In this way also Km/h label will be completly removed
-                    cv::Mat kernel = cv::getStructuringElement(cv::MorphShapes::MORPH_RECT, cv::Size2i(7,7));
-                    cv::erode(t_mat,t_mat,kernel);
-
-                    // compute rho_theta_plane and return best line params
-                    cv::Point2f best_rho_theta;
-                    mcv::compute_rho_theta_plane(t_mat,rho_theta_plane, best_rho_theta);
-
-                    // plot line from rho and theta into thresholded window
-                    mcv::line(t_mat,best_rho_theta.y,best_rho_theta.x);
-                    // plot line also into original frame
-                    mcv::line(frame,best_rho_theta.y,best_rho_theta.x, initial_point.x, initial_point.y);
-
-                    // print some informations
-                    std::cout << "theta: " << best_rho_theta.x << std::endl;
-                    std::cout << "theta (in degree):" << mcv::to_degree(best_rho_theta.x) << std::endl;
-                    std::cout << "speed: " << sm.add_observation(best_rho_theta.x,frame_number) << std::endl;
-
-
-                    // Draw simple bounds to interesting area
-                    cv::line( channels[2], initial_point, cv::Point(end_point.x,initial_point.y), cv::Scalar( 255, 0, 0), 2, cv::LINE_AA, 0  );
-                    cv::line( channels[2], cv::Point(initial_point.x,end_point.y), end_point, cv::Scalar( 255, 0, 0), 2, cv::LINE_AA, 0  );
-                    cv::line( channels[2], initial_point, cv::Point(initial_point.x,end_point.y), cv::Scalar( 255, 0, 0), 2, cv::LINE_AA, 0  );
-                    cv::line( channels[2], cv::Point(end_point.x,initial_point.y), end_point, cv::Scalar( 255, 0, 0), 2, cv::LINE_AA, 0  );
-
-                    // Show interesting image ad processes
-                    vw.write(frame);
-
-                    cv::imshow("live", frame);
-                    cv::imshow("red channel",channels[2]);
-                    cv::imshow("window",t_mat);
-                    cv::imshow("rho_theta_plane", mcv::to_image(rho_theta_plane));
-                    cv::imshow("graph", sm.get_graph());*/
 
                     cv::waitKey(1);  // delay between frame read ( if to long we loose frames )
                     ++frame_number;
