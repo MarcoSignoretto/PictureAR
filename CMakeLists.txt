@@ -17,7 +17,6 @@ set (CMAKE_CXX_STANDARD 11)
 set(SOURCE_FILES
         include/boundary_extractor.cpp
         include/utils.cpp
-        include/speedometer.cpp
         include/marker.cpp
         )
 

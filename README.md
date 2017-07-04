@@ -7,36 +7,11 @@ All code is commented in order to explain how it work and why I have done some c
 Marco Signoretto 850484
 
 ### GOALS ###
-I have tried to write code efficient and reusable.
+I have tried to write code efficient and reusable and group it into file with different goals.
 Definition and declaration are splitted into different files, so ```CMakeLists.txt``` has been edited as well 
 
 ### File ###
-In the project there is following file:
-
-1. ```speed.txt``` that contains all speed observation of the video
-
-### Image ###
-
-1. ```acceleration.png``` that contain the graph of the acceleration of the car
-
-### Video ###
-
-1. ```output.mp4``` is original video with the line of th pointer are drawn
-
-WARNING: the algorithm produce the video file ONLY if not already present.
-
-## Generate plot ##
-In order to generate plot I have done the following: 
-
-1. Import ```speed.txt``` has data and rename as ```speed```
-2. Execute the following commands in MATLAB:
-```MATLAB
-    time = 1:0.033:60.4;
-    plot(time,speed)
-    xlabel('time (sec)')
-    ylabel('speed (Km/h)')
-    title('BMW M5 F80 acceleration graph')
-```
+In the project there is the original ```data``` folder with all the files used by the progrma and the files used to test program:
 
 # Setup #
 The code must be build and setup has default template for this course as the following:
@@ -57,19 +32,23 @@ cmake  ../ -DOpenCV_DIR="/usr/local/Cellar/opencv3/HEAD-c1007c7"
 ```
 
 ## How to run: ##
-```sh
-cd build
-make run
-```
-
-
-or, alternatively:
-
+In order to run the project you need to perform the following commands:
 ```sh
 make install
 cd dist/bin
-invoke the generated executable
 ```
+and then invoke the program with some arguments, for example:
+```sh
+
+```
+#### Program arguments: ###
+1. ```-D``` or ```--Debug``` enable debug info, in this way we can observe how boundaries has been detected and other debug info (to have fast execution you shouldn't add it)
+
+2. ```-s``` or ```--source``` this argument required an additional parameter which is the source of the frame. The possible sourse are: ```image```,```video```,```webcam``` the last one is the defualt source.
+
+3. ```-f``` or ```--filename``` this argument must be present if the "source" is  ```image``` or ```video``` and must be following by the filename of the source.
+
+4. ```-c``` or ```--camera``` this argument allow to specify the camera number ( default is 0 which is the main camera ) for ```webcam``` source.
 
 --------------------------------------------------------------------------------
 NOTE: 
