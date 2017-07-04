@@ -185,39 +185,37 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     ///=== STEP 8 ===
     be.keep_between_corners(4, 4);
 
-    // TODO continue from here doc
-
     //========== HOMOGRAPHY =============
     std::vector<mcv::boundary> &boundaries = be.get_boundaries();
     for (mcv::boundary &boundary : boundaries) {
         cv::Mat warped_img;
 
+        ///=== STEP 9 ===
         // find Homography
         std::vector<cv::Vec2d> corners;
         for (cv::Vec2i &corner : boundary.corners) {
             corners.push_back(cv::Vec2d(corner[0], corner[1]));
         }
-
-
         cv::Mat H = cv::findHomography(corners, mcv::marker::DST_POINTS);
-
-
-        cv::warpPerspective(frame_th, warped_img, H.inv(), cv::Size(256, 256), cv::WARP_INVERSE_MAP,
-                            cv::BORDER_DEFAULT);
-
+        cv::warpPerspective(frame_th, warped_img, H.inv(), cv::Size(256, 256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
+        ///=== STEP 10 ===
         // Detect orientation
         int orientation = mcv::marker::detect_orientation(warped_img);
+
 
         // Calculate rotation matrixes
         cv::Mat rotation_matrix;
         cv::Mat picture_rotation;
         mcv::marker::calculate_rotation_matrix(rotation_matrix, orientation); // TODO optimize this code
+        ///=== STEP 11 ===
         mcv::marker::calculate_picture_rotation(picture_rotation, orientation);
 
-
+        ///=== STEP 12 ===
         // Set marker in correct orientation for matching
         cv::warpPerspective(warped_img, warped_img, rotation_matrix.inv(), cv::Size(256, 256),
                             cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
+
+        // TODO continue doc here
 
         // ============ MATCHING
 
