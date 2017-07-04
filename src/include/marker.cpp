@@ -5,14 +5,14 @@
 #include "marker.h"
 #include "utils.h"
 #include "boundary_extractor.h"
-#include <stdexcept>
-#include <iostream>
 #include <assert.h>
 #include <opencv2/imgproc.hpp>
 #include <opencv/cv.hpp>
 
 
+
 int mcv::marker::detect_orientation(const cv::Mat& warped_image) {
+
     // TODO clean code using vector of rect and vector of accumulator
     int res = 0;
     int max = 0;
@@ -26,7 +26,7 @@ int mcv::marker::detect_orientation(const cv::Mat& warped_image) {
     for( y = OFFSET; y < warped_image.rows-OFFSET; ++y) {
         p = warped_image.ptr<uchar>(y);
         for ( x = OFFSET; x < warped_image.cols-OFFSET; ++x) {
-            if(p[x] == mcv::marker::BLACK){
+            if(p[x] == BLACK){
                 if(x > RECT_0[0].x && x < RECT_0[1].x && y > RECT_0[0].y && y < RECT_0[1].y){
                     ++accumulator_0;
                 }
@@ -102,13 +102,6 @@ void mcv::marker::calculate_rotation_matrix(cv::Mat& rotation_matrix, int rotati
     rotation_matrix.at<float>(2,0) = raw_data[6];
     rotation_matrix.at<float>(2,1) = raw_data[7];
     rotation_matrix.at<float>(2,2) = raw_data[8];
-
-
-}
-
-void mcv::marker::rotate(cv::Mat &img, int rotation_degree) {
-
-    // TODO complete
 
 
 }
@@ -211,29 +204,26 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
         mcv::marker::calculate_picture_rotation(picture_rotation, orientation);
 
         ///=== STEP 12 ===
-        // Set marker in correct orientation for matching
-        cv::warpPerspective(warped_img, warped_img, rotation_matrix.inv(), cv::Size(256, 256),
-                            cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
+        // Rotate marker in correct orientation for matching
+        cv::warpPerspective(warped_img, warped_img, rotation_matrix.inv(), cv::Size(256, 256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
 
         // TODO continue doc here
 
+        ///=== STEP 13 ===
         // ============ MATCHING
-
         float match_0m = mcv::marker::compute_matching(img_0m_th, warped_img);
         float match_1m = mcv::marker::compute_matching(img_1m_th, warped_img);
 
 
-
-        if (match_0m > 0.92 || match_1m > 0.92) {
+        // Project placeholder with higher probability in original image if match above certain threshold
+        if (match_0m > MATCH_THRESHOLD || match_1m > MATCH_THRESHOLD) {
 
             const cv::Mat &matched_image = (match_0m > match_1m) ? img_0p : img_1p;
 
             cv::Mat output_img;
 
             cv::warpPerspective(matched_image, output_img, picture_rotation, cv::Size(256, 256));
-            cv::warpPerspective(output_img, frame, H, cv::Size(frame.cols, frame.rows),
-                                cv::WARP_INVERSE_MAP,
-                                cv::BORDER_TRANSPARENT);
+            cv::warpPerspective(output_img, frame, H, cv::Size(frame.cols, frame.rows), cv::WARP_INVERSE_MAP, cv::BORDER_TRANSPARENT);
         }
 
         if(debug_info){

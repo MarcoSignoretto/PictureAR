@@ -26,6 +26,10 @@ namespace mcv{
          */
         boundary_extractor(const std::string& filename);
 
+        /**
+        * Constructor: as before but using a gray scale image instead of a filename
+        * @param image_gray: GrayScale image
+        */
         boundary_extractor(const cv::Mat image_gray);
 
         /**
@@ -46,18 +50,21 @@ namespace mcv{
          */
         void draw_boundaries(const std::string& dest);
 
-        // TODO comment
-        void draw_boundaries(const cv::Mat& image, cv::Mat& fin_img);
-
+        /**
+         * This function create a new binary image where pixel is WHITE (255) if it is in a boundary BLACK (0) otherwise
+         * @param image: image where results are stored
+         */
         void create_boundaries_image(cv::Mat& image);
 
+        /**
+         * This function draw all boundaries in RED into the "image" parameter
+         * @param image: image where boundaries will be drawn ( must have 3 channels and colored )
+         */
         void draw_boundaries(cv::Mat& image);
 
-        // TODO comment
         /**
-         * Draw boundaries in a colored image
-         * @param image
-         * @param fin_img
+         * This function draw all corners in GREEN into the "image" parameter
+         * @param image: image where corners will be drawn ( must have 3 channels and colored )
          */
         void draw_boundaries_corners(cv::Mat& image);
 
@@ -69,16 +76,23 @@ namespace mcv{
          */
         void keep_between(int min_length, int max_length);
 
-        // TODO comment
+        /**
+         * This function allow to keep only boundaries with a number of corners between "min_corners" and "max_corners"
+         * @param min_corners: min corners that boundary must contains
+         * @param max_corners: max corners that boundary must contains
+         */
         void keep_between_corners(int min_corners, int max_corners);
 
-        //TODO comment
-        //void compute_corners();
-
-        // TODO comment
+        /**
+         * Compute boundaries corners starting from an image obtained from harris corner "img_corners"
+         * @param img_corners: images with harris corners
+         */
         void compute_corners(cv::Mat& img_corners);
 
-        // TODO comment
+        /**
+         * This function returns all boundaries which haven't been throw away
+         * @return boundaries
+         */
         std::vector<boundary>& get_boundaries(){
             return boundaries_;
         }
@@ -142,7 +156,6 @@ namespace mcv{
          */
         inline int find_clock_index(cv::Vec2i* c, cv::Vec2i* b);
 
-        // TODO edit comment
         /**
          * Internal function that draw in red a boundary on a image divided into channel given.
          * @param b: boundary to draw
@@ -150,8 +163,18 @@ namespace mcv{
          */
         inline void draw_boundary(const cv::Mat& image, const boundary& b, std::vector<cv::Mat>& channels);
 
+        /**
+         * This function draw boundary's corners into the "image"
+         * @param image: destination of corners drawing ( must have 3 channels and colored )
+         * @param b: boundary which will be drawn
+         */
         inline void draw_corners(cv::Mat& image, const boundary &b);
 
+        /**
+         * This function draw boundary into the "image"
+         * @param image: destination of boundary drawing ( must have 3 channels and colored or single channel grayscale )
+         * @param b: boundary which will be drawn
+         */
         inline void draw_boundary(cv::Mat& image, const boundary &b);
 
         /**

@@ -10,9 +10,6 @@
 #include "boundary_extractor.h"
 #include "utils.h"
 
-uchar WHITE = 255;
-uchar BLACK = 0;
-
 using namespace mcv;
 
 boundary_extractor::boundary_extractor(const std::string& filename):filename_(filename){
@@ -55,10 +52,7 @@ boundary_extractor::boundary_extractor(const std::string& filename):filename_(fi
     //cv::imwrite("bacteria_border.png",image_);
 }
 
-/**
- * GrayScale image
- * @param image: GrayScale image
- */
+
 boundary_extractor::boundary_extractor(const cv::Mat image_gray):filename_(""){
     //Calculate histogram
     int max_value;
@@ -94,8 +88,6 @@ boundary_extractor::boundary_extractor(const cv::Mat image_gray):filename_(""){
             p[j] = p2[j-1];
         }
     }
-    // decomment if want visualize threshold image generated
-    //cv::imwrite("bacteria_border.png",image_);
 }
 
 void boundary_extractor::find_boundaries() {
@@ -329,35 +321,6 @@ void boundary_extractor::draw_boundaries(const std::string &dest) {
     cv::imwrite(dest,fin_img);
 }
 
-/**
- *
- * @param fin_img: color image with boundaries
- * @param image: image where write
- */
-void boundary_extractor::draw_boundaries(const cv::Mat& image, cv::Mat& fin_img) {
-
-
-
-    // create a channel vector to produce colored image from
-    vector<cv::Mat> channels;
-    // set each channel image value ( remain grayscale )
-    // channels as classical OpenCV order (bgr)
-    // channels[0] => blue
-    // channels[1] => green
-    // channels[2] => red
-    channels.push_back(image.clone());
-    channels.push_back(image.clone());
-    channels.push_back(image.clone());
-
-    for(boundary& b : boundaries_){
-        draw_boundary(image,b,channels); // draw red line into image respect to boundary pixels
-    }
-
-    // merge channels into color image fin_image
-    merge(channels, fin_img);
-}
-
-
 void boundary_extractor::create_boundaries_image(cv::Mat& image) {
     image = cv::Mat::zeros(image_.rows, image_.cols, CV_8UC1); // image is larger of 1 px respect to input
 
@@ -403,14 +366,11 @@ inline void boundary_extractor::draw_corners(cv::Mat& image, const boundary &b) 
     assert(image.channels() == 3 && "Invalid channel number");
 
     for(cv::Vec2i v : b.corners) {
-        int offset = 3;
+        int offset = 3; // Used to make corners visible ( bigger than a pixel )
         int j_origin = v[0];
         int i_origin = v[1];
-        /*channels[0].at<uchar>(i_origin, j_origin) = 0;
-        channels[1].at<uchar>(i_origin, j_origin) = 255;
-        channels[2].at<uchar>(i_origin, j_origin) = 0;*/
 
-        // Remove all color from blue and green channel and add full color to red channel
+        // Remove all color from blue and green channel and add full color to green channel
         for (int i = i_origin-offset; i<i_origin+offset; ++i) {
             if (i >= 0 && i < image.rows) {
                 for (int j = j_origin - offset; j < j_origin + offset; ++j) {
@@ -420,10 +380,6 @@ inline void boundary_extractor::draw_corners(cv::Mat& image, const boundary &b) 
                         intensity[0] = 0;
                         intensity[1] = 255;
                         intensity[2] = 0;
-
-                        /*channels[0].at<uchar>(i, j) = 0;
-                        channels[1].at<uchar>(i, j) = 255;
-                        channels[2].at<uchar>(i, j) = 0;*/
                     }
                 }
             }

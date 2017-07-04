@@ -10,9 +10,14 @@
 namespace mcv{
     namespace marker{
 
+        /// Constants related to boundary length filter
         const int BOUNDARY_MIN_LENGTH = 200;
         const int BOUNDARY_MAX_LENGTH = 1200;
 
+        /// Threshold value for marker matching
+        const float MATCH_THRESHOLD = 0.90;
+
+        /// Constants related to marker orientation detection
         const int WIDTH = 135;
         const int HEIGHT = 55;
 
@@ -41,23 +46,40 @@ namespace mcv{
                 cv::Vec2d(0, 256),
         };
 
+        // Constant for BLACK pixel in thresholded image
         const int BLACK = 0;
-        const int WHITE = 255;
 
-        //TODO complete
         /**
-         * This image must be thresholded and 256x256
-         * @param warped_image
+         * Detect orientation of a given marker and return its orientation in degree to obtain the original marker orientation
+         * @param warped_image: image that shold be contain a marker to work properly (must be thresholded and 256x256)
+         * @param
          * @return 0,90,180,270 degree of rotation respect to original marker
          */
         int detect_orientation(const cv::Mat& warped_image);
 
+        /**
+         * This function given the "rotation_degree" obtained from detect_orientation function calculate the rotation
+         * matrix which will be saved into rotation_matrix
+         * @see detect_orientation
+         * @param rotation_matrix: reference of matrix where rotation matrix will be setted
+         * @param rotation_degree: rotation in degree to obtain the original marker orientation
+         */
         void calculate_rotation_matrix(cv::Mat& rotation_matrix, int rotation_degree);
 
+        /**
+         * This function works as calculate_rotation_matrix but compute matrix used to rotate placeholder before warp
+         * @see calculate_rotation_matrix
+         * @param rotation_matrix: reference of matrix where rotation matrix will be setted
+         * @param rotation_degree: rotation in degree to obtain the original marker orientation
+         */
         void calculate_picture_rotation(cv::Mat& rotation_matrix, int rotation_degree);
 
-        void rotate(cv::Mat& img, int rotation_degree);
-
+        /**
+         * This function compute the probability of a certain marker ( marker_extracted ) to be the "marker_candidate"
+         * @param marker_extracted: marker extracted from frame
+         * @param marker_candidate: one of the marker for the pictures ( OM or 1M )
+         * @return probability that the two markers are the same
+         */
         float compute_matching(const cv::Mat& marker_extracted, const cv::Mat& marker_candidate);
 
         /**
@@ -75,7 +97,8 @@ namespace mcv{
          * 10) detect marker orientation ( in this step also other candidate marker has been rotate because final filtering is applied during matching phase )
          * 11) calculate rotation for placeholder
          * 12) rotate marker in order to perform matching
-         * 13)
+         * 13) compute matching coefficient
+         * 14) warp placeholder with higer probability into original image if matching is above MATCH_THRESHOLD
          *
          * @param img_0p: image placeholder 0 ( leo picture )
          * @param img_1p: image placeholder 1 ( van picture )

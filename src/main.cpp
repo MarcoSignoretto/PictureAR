@@ -4,10 +4,8 @@
 #include <exception>
 
 #include "include/utils.h"
-#include "include/speedometer.h"
 #include "include/boundary_extractor.h"
 #include "include/marker.h"
-#include "include/feature_drawer.h"
 
 using namespace std;
 
