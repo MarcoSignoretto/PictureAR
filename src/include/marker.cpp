@@ -3,9 +3,13 @@
 //
 
 #include "marker.h"
+#include "utils.h"
+#include "boundary_extractor.h"
 #include <stdexcept>
 #include <iostream>
 #include <assert.h>
+#include <opencv2/imgproc.hpp>
+#include <opencv/cv.hpp>
 
 
 int mcv::marker::detect_orientation(const cv::Mat& warped_image) {
@@ -132,3 +136,122 @@ float mcv::marker::compute_matching(const cv::Mat &marker_extracted, const cv::M
 
     return (float)sum/(float)max;
 }
+
+void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const cv::Mat& img_0m_th, const cv::Mat& img_1m_th, cv::Mat& frame, bool debug_info) {
+    cv::Mat frame_debug;
+    cv::Mat grayscale;
+    cv::Mat boundaries_img;
+
+
+    if(debug_info) {
+        frame_debug = frame.clone();
+    }
+
+    ///=== STEP 1 ===
+    // Convert original image into gray scale
+    cv::cvtColor(frame, grayscale, CV_RGB2GRAY);
+
+    ///=== STEP 2 ===
+    //Calculate threshold image from the gray scale
+    int max_value;
+    cv::Mat hist_ = mcv::compute_hist(grayscale, max_value);
+    cv::Mat normHist = mcv::normalize_hist(hist_, grayscale);
+    int threshold = mcv::compute_Otsu_thresholding(normHist);
+    cv::Mat frame_th = mcv::image_threshold(threshold, grayscale);
+
+    ///=== STEP 3 ===
+    // Boundary extraction
+    mcv::boundary_extractor be(grayscale);
+    be.find_boundaries();
+
+    ///=== STEP 4 ===
+    be.keep_between(BOUNDARY_MIN_LENGTH, BOUNDARY_MAX_LENGTH);
+
+    ///=== STEP 5 ===
+    be.create_boundaries_image(boundaries_img);// 1 pixel of padding
+
+    ///=== STEP 6 ===
+    //===detect corners of the boundaries with harris corner ===
+    cv::Mat img_corners = cv::Mat::zeros(boundaries_img.rows, boundaries_img.cols, CV_32FC1); // float values
+    int block_size = 11;//Good 7
+    int kernel_size = 7;// Good 5
+    float free_parameter = 0.05; // more little more corners will be found
+    cv::cornerHarris(boundaries_img, img_corners, block_size, kernel_size, free_parameter,
+                     cv::BorderTypes::BORDER_DEFAULT);
+
+    ///=== STEP 7 ===
+    //search corners in img_corners
+    be.compute_corners(img_corners);
+    ///=== STEP 8 ===
+    be.keep_between_corners(4, 4);
+
+    // TODO continue from here doc
+
+    //========== HOMOGRAPHY =============
+    std::vector<mcv::boundary> &boundaries = be.get_boundaries();
+    for (mcv::boundary &boundary : boundaries) {
+        cv::Mat warped_img;
+
+        // find Homography
+        std::vector<cv::Vec2d> corners;
+        for (cv::Vec2i &corner : boundary.corners) {
+            corners.push_back(cv::Vec2d(corner[0], corner[1]));
+        }
+
+
+        cv::Mat H = cv::findHomography(corners, mcv::marker::DST_POINTS);
+
+
+        cv::warpPerspective(frame_th, warped_img, H.inv(), cv::Size(256, 256), cv::WARP_INVERSE_MAP,
+                            cv::BORDER_DEFAULT);
+
+        // Detect orientation
+        int orientation = mcv::marker::detect_orientation(warped_img);
+
+        // Calculate rotation matrixes
+        cv::Mat rotation_matrix;
+        cv::Mat picture_rotation;
+        mcv::marker::calculate_rotation_matrix(rotation_matrix, orientation); // TODO optimize this code
+        mcv::marker::calculate_picture_rotation(picture_rotation, orientation);
+
+
+        // Set marker in correct orientation for matching
+        cv::warpPerspective(warped_img, warped_img, rotation_matrix.inv(), cv::Size(256, 256),
+                            cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
+
+        // ============ MATCHING
+
+        float match_0m = mcv::marker::compute_matching(img_0m_th, warped_img);
+        float match_1m = mcv::marker::compute_matching(img_1m_th, warped_img);
+
+
+
+        if (match_0m > 0.92 || match_1m > 0.92) {
+
+            const cv::Mat &matched_image = (match_0m > match_1m) ? img_0p : img_1p;
+
+            cv::Mat output_img;
+
+            cv::warpPerspective(matched_image, output_img, picture_rotation, cv::Size(256, 256));
+            cv::warpPerspective(output_img, frame, H, cv::Size(frame.cols, frame.rows),
+                                cv::WARP_INVERSE_MAP,
+                                cv::BORDER_TRANSPARENT);
+        }
+
+        if(debug_info){
+            cv::imshow("warped_marker", warped_img);
+            cout << "LEO: " << match_0m << ", VAN: " << match_1m << endl;
+        }
+
+    }
+
+    if (debug_info) {
+        be.draw_boundaries(frame_debug);
+        be.draw_boundaries_corners(frame_debug);
+
+        cv::imshow("corners", img_corners);
+        cv::imshow("live", frame_debug);
+    }
+}
+
+

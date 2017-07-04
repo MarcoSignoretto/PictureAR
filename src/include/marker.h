@@ -9,6 +9,10 @@
 
 namespace mcv{
     namespace marker{
+
+        const int BOUNDARY_MIN_LENGTH = 200;
+        const int BOUNDARY_MAX_LENGTH = 1200;
+
         const int WIDTH = 135;
         const int HEIGHT = 55;
 
@@ -55,6 +59,26 @@ namespace mcv{
         void rotate(cv::Mat& img, int rotation_degree);
 
         float compute_matching(const cv::Mat& marker_extracted, const cv::Mat& marker_candidate);
+
+        /**
+         * This function execute the pipeline to apply AR to the original image "frame", the pipeline is the following:
+         * 1) Read frame and convert in grayscale
+         * 2) Apply Otzu threshold to grayscale image
+         * 3) Extract image boundaries
+         * 4) Filter the above boundaries with length between BOUNDARY_MIN_LENGTH and BOUNDARY_MAX_LENGTH
+         * 5) Create image with filtered boundaries
+         * 6) Apply harris corner into the above image
+         * 7) Compute which pixels of the boundaries are corners
+         * 8) Filter boundaries which have 4 corners
+         *
+         * @param img_0p: image placeholder 0 ( leo picture )
+         * @param img_1p: image placeholder 1 ( van picture )
+         * @param img_0m_th: image marker 0 thresholded ( leo marker )
+         * @param img_1m_th: image marker 1 thresholded ( van marker )
+         * @param frame: original image on which AR will be applied
+         * @param debug_info: if true additional images will be shown with deboug pourpose
+         */
+        void apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const cv::Mat& img_0m_th, const cv::Mat& img_1m_th, cv::Mat& frame, bool debug_info);
 
     }
 }
