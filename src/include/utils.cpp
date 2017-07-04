@@ -42,9 +42,26 @@ cv::Mat mcv::compute_hist(const cv::Mat& image_gray, int& max_value){
     // use 32 bit to store image (worst case 307200 so 16-bit is not sufficient)
     cv::Mat hist = cv::Mat::zeros(1, 256, CV_32SC1);
 
-    // Use iterator in order to have good efficiency respect ro "at" but without control if image is continuous as
-    // for raw pointer
-    auto it = image_gray.begin<uchar>();
+    int nRows = image_gray.rows;
+    int nCols = image_gray.cols;
+
+    const uchar* p;
+    for(int i = 0; i < nRows; ++i) {
+        // Iterate on image with pointer of row, this method is less efficient that all pointer iteration but works
+        // also for non continuous images
+        p = image_gray.ptr<uchar>(i);
+        for (int j = 0; j < nCols; ++j) {
+            // get intensity of pixel at i,j position and use his value as index for increase frequency of histogram
+            // for that intensity
+            int j_index = (int)(p[j]);
+            int& hist_value = hist.at<int>(0, j_index);
+            hist_value += 1;
+            //update max frequency if needed
+            if(hist_value > max_value) max_value = hist_value;
+        }
+    }
+
+    /*auto it = image_gray.begin<uchar>();
     auto it_end = image_gray.end<uchar>();
     while(it < it_end){
         // get intensity of pixel at i,j position and use his value as index for increase frequency of histogram
@@ -55,7 +72,7 @@ cv::Mat mcv::compute_hist(const cv::Mat& image_gray, int& max_value){
         //update max frequency if needed
         if(hist_value > max_value) max_value = hist_value;
         ++it; // increase iterator ( go to next item )
-    }
+    }*/
     return hist;
 }
 

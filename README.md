@@ -31,6 +31,8 @@ for example mine is
 cmake  ../ -DOpenCV_DIR="/usr/local/Cellar/opencv3/HEAD-c1007c7" 
 ```
 
+//TODO -DCMAKE_BUILD_TYPE=Release vedere come aggiungere
+
 ## How to run: ##
 In order to run the project you need to perform the following commands:
 ```sh
@@ -39,8 +41,10 @@ cd dist/bin
 ```
 and then invoke the program with some arguments, for example:
 ```sh
-
+//TODO COMPLETE
 ```
+
+-DCMAKE_BUILD_TYPE=Release
 #### Program arguments: ###
 1. ```-D``` or ```--Debug``` enable debug info, in this way we can observe how boundaries has been detected and other debug info (to have fast execution you shouldn't add it)
 

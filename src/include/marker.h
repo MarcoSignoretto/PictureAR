@@ -15,7 +15,7 @@ namespace mcv{
         const int BOUNDARY_MAX_LENGTH = 1200;
 
         /// Threshold value for marker matching
-        const float MATCH_THRESHOLD = 0.90;
+        const float MATCH_THRESHOLD = 0.90f;
 
         /// Constants related to marker orientation detection
         const int WIDTH = 135;

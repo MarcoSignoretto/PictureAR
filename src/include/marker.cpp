@@ -62,26 +62,26 @@ int mcv::marker::detect_orientation(const cv::Mat& warped_image) {
 }
 
 void mcv::marker::calculate_rotation_matrix(cv::Mat& rotation_matrix, int rotation_degree) {
-    float radiants = 0.0;
-    float offset_x = 0.0;
-    float offset_y = 0.0;
+    float radiants = 0.0f;
+    float offset_x = 0.0f;
+    float offset_y = 0.0f;
     switch(rotation_degree){
         case 0:
             break;
         case 90:
             radiants = (float)(CV_PI/2.0);
-            offset_x = 256.0;
-            offset_y = 0.0;
+            offset_x = 256.0f;
+            offset_y = 0.0f;
             break;
         case 180:
             radiants = (float)CV_PI;
-            offset_x = 256.0;
-            offset_y = 256.0;
+            offset_x = 256.0f;
+            offset_y = 256.0f;
             break;
         case 270:
-            radiants = (float)((3.0/2.0)*CV_PI);
-            offset_x = 0.0;
-            offset_y = 256.0;
+            radiants = (float)((3.0f/2.0f)*CV_PI);
+            offset_x = 0.0f;
+            offset_y = 256.0f;
             break;
         default:
             throw std::invalid_argument("only 0,90,180,270 degree are supported");
@@ -90,7 +90,7 @@ void mcv::marker::calculate_rotation_matrix(cv::Mat& rotation_matrix, int rotati
     float raw_data[] = {
             (float)cos(radiants), (float)-sin(radiants), offset_x,
             (float)sin(radiants), (float)cos(radiants), offset_y,
-            0.0, 0.0, 1.0
+            0.0f, 0.0f, 1.0f
     };
     rotation_matrix = cv::Mat(3, 3, CV_32F);
     rotation_matrix.at<float>(0,0) = raw_data[0];
@@ -168,7 +168,7 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     cv::Mat img_corners = cv::Mat::zeros(boundaries_img.rows, boundaries_img.cols, CV_32FC1); // float values
     int block_size = 11;//Good 7
     int kernel_size = 7;// Good 5
-    float free_parameter = 0.05; // more little more corners will be found
+    float free_parameter = 0.05f; // more little more corners will be found
     cv::cornerHarris(boundaries_img, img_corners, block_size, kernel_size, free_parameter,
                      cv::BorderTypes::BORDER_DEFAULT);
 
@@ -206,8 +206,6 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
         ///=== STEP 12 ===
         // Rotate marker in correct orientation for matching
         cv::warpPerspective(warped_img, warped_img, rotation_matrix.inv(), cv::Size(256, 256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
-
-        // TODO continue doc here
 
         ///=== STEP 13 ===
         // ============ MATCHING
