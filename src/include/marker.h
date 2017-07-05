@@ -6,13 +6,14 @@
 #define PROJECT_MARKER_H
 
 #include <opencv2/core/mat.hpp>
+#include <MacTypes.h>
 
 namespace mcv{
     namespace marker{
 
         /// Constants related to boundary length filter
         const int BOUNDARY_MIN_LENGTH = 200;
-        const int BOUNDARY_MAX_LENGTH = 1200;
+        const int BOUNDARY_MAX_LENGTH = 1500;//1200;
 
         /// Threshold value for marker matching
         const float MATCH_THRESHOLD = 0.90f;
@@ -37,6 +38,11 @@ namespace mcv{
         const std::vector< cv::Point > RECT_270 = {
                 cv::Point(OFFSET, 256-(OFFSET+WIDTH)),
                 cv::Point(OFFSET+HEIGHT, 256-OFFSET)
+        };
+
+        const std::vector< cv::Point > RECT_MATCHING = {
+                cv::Point(OFFSET+10, 256-(OFFSET+HEIGHT)),
+                cv::Point(256-OFFSET-80, 256-OFFSET)
         };
 
         const std::vector<cv::Vec2d> DST_POINTS = {
@@ -80,7 +86,9 @@ namespace mcv{
          * @param marker_candidate: one of the marker for the pictures ( OM or 1M )
          * @return probability that the two markers are the same
          */
-        float compute_matching(const cv::Mat& marker_extracted, const cv::Mat& marker_candidate);
+        float compute_matching(const cv::Mat& marker_extracted, const cv::Mat& marker_candidate, cv::Point top_left = cv::Point(0,0), cv::Point bottom_right = cv::Point(256,256));
+
+
 
         /**
          * This function execute the pipeline to apply AR to the original image "frame", the pipeline is the following:
@@ -104,10 +112,10 @@ namespace mcv{
          * @param img_1p: image placeholder 1 ( van picture )
          * @param img_0m_th: image marker 0 thresholded ( leo marker )
          * @param img_1m_th: image marker 1 thresholded ( van marker )
-         * @param frame: original image on which AR will be applied
+         * @param camera_frame: original image on which AR will be applied
          * @param debug_info: if true additional images will be shown with deboug pourpose
          */
-        void apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const cv::Mat& img_0m_th, const cv::Mat& img_1m_th, cv::Mat& frame, bool debug_info);
+        void apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const cv::Mat& img_0m_th, const cv::Mat& img_1m_th, cv::Mat& camera_frame,  bool debug_info);
 
     }
 }

@@ -5,6 +5,7 @@
 #include "marker.h"
 #include "utils.h"
 #include "boundary_extractor.h"
+#include "feature_drawer.h"
 #include <assert.h>
 #include <opencv2/imgproc.hpp>
 #include <opencv/cv.hpp>
@@ -111,18 +112,18 @@ void mcv::marker::calculate_picture_rotation(cv::Mat &rotation_matrix, int rotat
     calculate_rotation_matrix(rotation_matrix, rotation_degree);// TODO optimize, avoid to calculate new matrix
 }
 
-float mcv::marker::compute_matching(const cv::Mat &marker_extracted, const cv::Mat &marker_candidate) {
+float mcv::marker::compute_matching(const cv::Mat &marker_extracted, const cv::Mat &marker_candidate, const cv::Point top_left, const cv::Point bottom_right) {
 
     assert(marker_extracted.rows == marker_candidate.rows && marker_extracted.cols == marker_candidate.cols && "Dimensions mismatch");
     int sum = 0;
-    int max = marker_extracted.rows*marker_extracted.cols;
+    int max = (bottom_right.x-top_left.x)*(bottom_right.y-top_left.y);
 
     const uchar *p_marker_extracted;
     const uchar *p_marker_candidate;
-    for(int y = 0; y < marker_extracted.rows; ++y) {
+    for(int y = top_left.y; y < bottom_right.y; ++y) {
         p_marker_extracted = marker_extracted.ptr<uchar>(y);
         p_marker_candidate = marker_candidate.ptr<uchar>(y);
-        for (int x = 0; x < marker_extracted.cols; ++x) {
+        for (int x = top_left.x; x < bottom_right.x; ++x) {
             if(p_marker_extracted[x] == p_marker_candidate[x])++sum;
         }
     }
@@ -130,10 +131,15 @@ float mcv::marker::compute_matching(const cv::Mat &marker_extracted, const cv::M
     return (float)sum/(float)max;
 }
 
-void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const cv::Mat& img_0m_th, const cv::Mat& img_1m_th, cv::Mat& frame, bool debug_info) {
+void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const cv::Mat& img_0m_th, const cv::Mat& img_1m_th, cv::Mat& camera_frame, bool debug_info) {
     cv::Mat frame_debug;
     cv::Mat grayscale;
     cv::Mat boundaries_img;
+    cv::Mat frame;
+
+    int sigma = 3;
+    int ksize = 7;
+    cv::GaussianBlur(camera_frame, frame, cv::Size(ksize,ksize), sigma);
 
 
     if(debug_info) {
@@ -216,15 +222,21 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
         // Project placeholder with higher probability in original image if match above certain threshold
         if (match_0m > MATCH_THRESHOLD || match_1m > MATCH_THRESHOLD) {
 
+            //float accurate_match_0m = mcv::marker::compute_matching(img_0m_th, warped_img, RECT_MATCHING[0], RECT_MATCHING[1]);
+            //float accurate_match_1m = mcv::marker::compute_matching(img_1m_th, warped_img, RECT_MATCHING[0], RECT_MATCHING[1]);
+
             const cv::Mat &matched_image = (match_0m > match_1m) ? img_0p : img_1p;
 
             cv::Mat output_img;
 
             cv::warpPerspective(matched_image, output_img, picture_rotation, cv::Size(256, 256));
-            cv::warpPerspective(output_img, frame, H, cv::Size(frame.cols, frame.rows), cv::WARP_INVERSE_MAP, cv::BORDER_TRANSPARENT);
+            cv::warpPerspective(output_img, camera_frame, H, cv::Size(frame.cols, frame.rows), cv::WARP_INVERSE_MAP, cv::BORDER_TRANSPARENT);
         }
 
         if(debug_info){
+
+            mcv::feature_drawer::draw_rect(warped_img,mcv::marker::RECT_MATCHING);
+
             cv::imshow("warped_marker", warped_img);
             cout << "LEO: " << match_0m << ", VAN: " << match_1m << endl;
         }

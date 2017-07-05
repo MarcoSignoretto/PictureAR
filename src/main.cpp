@@ -108,15 +108,15 @@ int main( int argc, char* argv[] ) {
             int frame_number = 1;
 
             while (!end) {
-                cv::Mat frame;
+                cv::Mat camera_frame;
 
-                vc >> frame; // put frame image Mat , this operation is blocking until a frame is provided
-                if (frame.empty()) { // if camera frame are infinite but in video no
+                vc >> camera_frame; // put frame image Mat , this operation is blocking until a frame is provided
+                if (camera_frame.empty()) { // if camera frame are infinite but in video no
                     end = true;
                 } else {
 
-                    mcv::marker::apply_AR(img_0p, img_1p, img_0m_th, img_1m_th, frame, debug_info);
-                    cv::imshow("original", frame);
+                    mcv::marker::apply_AR(img_0p, img_1p, img_0m_th, img_1m_th, camera_frame, debug_info);
+                    cv::imshow("original", camera_frame);
 
                     cv::waitKey(1);  // delay between frame read ( if to long we loose frames )
                     ++frame_number;
