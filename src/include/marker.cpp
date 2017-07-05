@@ -172,8 +172,8 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     ///=== STEP 6 ===
     //===detect corners of the boundaries with harris corner ===
     cv::Mat img_corners = cv::Mat::zeros(boundaries_img.rows, boundaries_img.cols, CV_32FC1); // float values
-    int block_size = 11;//Good 7
-    int kernel_size = 7;// Good 5
+    int block_size = 11;//11;//Good 7
+    int kernel_size = 7;//7;// Good 5
     float free_parameter = 0.05f; // more little more corners will be found
     cv::cornerHarris(boundaries_img, img_corners, block_size, kernel_size, free_parameter,
                      cv::BorderTypes::BORDER_DEFAULT);

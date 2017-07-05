@@ -366,7 +366,7 @@ inline void boundary_extractor::draw_corners(cv::Mat& image, const boundary &b) 
     assert(image.channels() == 3 && "Invalid channel number");
 
     for(cv::Vec2i v : b.corners) {
-        int offset = 3; // Used to make corners visible ( bigger than a pixel )
+        int offset = 1; // Used to make corners visible ( bigger than a pixel )
         int j_origin = v[0];
         int i_origin = v[1];
 

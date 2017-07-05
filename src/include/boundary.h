@@ -19,13 +19,6 @@ namespace mcv{
         int length = 0;
         int corners_number = 0;
 
-        std::vector<float> intensity = {
-                0.0f,
-                0.0f,
-                0.0f,
-                0.0f
-        }; // clock wise ordered
-
         std::vector<cv::Vec2i> points; // clock wise ordered
         std::vector<cv::Vec2i> corners; // clock wise ordered
 
@@ -46,16 +39,31 @@ namespace mcv{
             }
         }
 
-        // TODO try to improve quality
+
         void compute_corners(cv::Mat& img_corners){
+            int kernel_size = 3;
             bool on_corner = false;
             cv::Vec2i* corner = nullptr;
             float corner_intensity = 0.0f;
             for(int i = 0; i < points.size(); ++i) {
                 cv::Vec2i &point = points[i];
 
-                float current_intensity = img_corners.at<float>(point[1]+1,point[0]+1);// remove offset because corner image has offset also
-                if(current_intensity > 2.0f){
+                // Calculate intensity based on neighbourhood
+                float current_intensity = 0.0f;
+                const float *p;
+                for(int y = point[1]+1-kernel_size; y <= point[1]+1+kernel_size; ++y) {
+                    if (y >= 0 && y < img_corners.rows) { // Bound checking
+                        p = img_corners.ptr<float>(y);
+                        for (int x = point[0] + 1 - kernel_size; x <= point[0] + 1 + kernel_size; ++x) {
+                            if (x >= 0 && x < img_corners.cols) { // Bound checking
+                                current_intensity += p[x];
+                            }
+                        }
+                    }
+                }
+
+                // Check if point is a corner or not
+                if(current_intensity > 1.0f){
                     if(!on_corner){
                         on_corner = true;
                     }
@@ -78,31 +86,15 @@ namespace mcv{
 
 
     private:
+        /**
+         * Normalize corner values ( remove padding )
+         */
         void normalizeCorners(){
             for (cv::Vec2i& corner: corners) {
                 corner[0]-=1;
                 corner[1]-=1;
             }
         }
-
-        // TODO improve performance using pointers
-        inline void search_corner(int index, cv::Vec2i& point, cv::Mat& img_corners){
-            int neighbour = 0;
-            for(int i= point[1] - neighbour; i <= point[1] + neighbour; ++i){
-                for(int j=point[0]-neighbour; j<= point[0]+neighbour; ++j) {
-                    // core TODO search why also with neightbour there are problems ion corner detection ( maybe wring if below)
-                    //if(i>=0 && j>=0 && i<img_corners.cols && j<img_corners.rows) {
-                        float current_intensity = img_corners.at<float>(i, j);
-                        if (intensity[index] < current_intensity) {
-                            corners[index][0] = point[0];
-                            corners[index][1] = point[1];
-                            intensity[index] = current_intensity;
-                        }
-                    //}
-                }
-            }
-        }
-
     };
 
 
