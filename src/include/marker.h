@@ -12,8 +12,11 @@ namespace mcv{
     namespace marker{
 
         /// Constants related to boundary length filter
+        /*
+         * These value has been chosen empirically
+         */
         const int BOUNDARY_MIN_LENGTH = 200;
-        const int BOUNDARY_MAX_LENGTH = 1500;//1200;
+        const int BOUNDARY_MAX_LENGTH = 1500;
 
         /// Threshold value for marker matching
         /* This is a very important parameter:
@@ -118,19 +121,19 @@ namespace mcv{
          * 7) Compute which pixels of the boundaries are corners
          * 8) Keep only boundaries which have 4 corners
          * For each boundary:
-         * 9) find homography and warp image into a 256x256 image
+         * 9) find homography and warp image into a 256x256 image ( from unblured_grayscale )
          * 10) detect marker orientation ( in this step also other candidate marker has been rotate because final filtering is applied during matching phase )
          * 11) calculate rotation for placeholder
          * 12) rotate marker in order to perform matching
          * 13) compute matching coefficient
-         * 14) warp placeholder with higer probability into original image if matching is above MATCH_THRESHOLD
+         * 14) warp placeholder with higher probability into original image if matching is above MATCH_THRESHOLD
          *
          * @param img_0p: image placeholder 0 ( leo picture )
          * @param img_1p: image placeholder 1 ( van picture )
          * @param img_0m_th: image marker 0 thresholded ( leo marker )
          * @param img_1m_th: image marker 1 thresholded ( van marker )
          * @param camera_frame: original image on which AR will be applied
-         * @param debug_info: if true additional images will be shown with deboug pourpose
+         * @param debug_info: if true additional images will be shown with debug pourpose
          */
         void apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const cv::Mat& img_0m_th, const cv::Mat& img_1m_th, cv::Mat& camera_frame,  bool debug_info);
 

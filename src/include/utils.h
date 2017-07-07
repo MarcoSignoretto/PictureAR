@@ -11,7 +11,7 @@ using namespace std;
 
 namespace mcv{
 
-    // TODO changed here to test idea ( WHITE shold be 255)
+    // TODO changed here to test idea ( WHITE should be 255)
     const uchar WHITE = 0;
     const uchar BLACK = 255;
 
