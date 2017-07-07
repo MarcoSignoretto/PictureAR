@@ -29,6 +29,9 @@ namespace mcv{
          * parameter ( for example 0.85 ensure strong detection also on fast movement or high inclination but
          * maybe you will see the wrong marker )
          *
+         * Also higher image resolution could help correct recognition also far away from webcam or high angle but
+         * for this project the resolution has been chosen to be equal of resolution of the video test
+         *
          * */
         const float MATCH_THRESHOLD = 0.90f;
         /// Constants related to marker orientation detection
