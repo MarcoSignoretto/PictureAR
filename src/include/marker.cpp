@@ -134,29 +134,32 @@ float mcv::marker::compute_matching(const cv::Mat &marker_extracted, const cv::M
 void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const cv::Mat& img_0m_th, const cv::Mat& img_1m_th, cv::Mat& camera_frame, bool debug_info) {
     cv::Mat frame_debug;
     cv::Mat grayscale;
+    cv::Mat unblured_grayscale;
     cv::Mat boundaries_img;
-    cv::Mat frame;
+    int threshold;
+    int max_value;
 
+    ///=== STEP 0 ===
+    // Convert original image into gray scale image
+    cv::cvtColor(camera_frame, unblured_grayscale, CV_RGB2GRAY);
+
+    ///=== STEP 1 ===
     int sigma = 3;
     int ksize = 7;
-    cv::GaussianBlur(camera_frame, frame, cv::Size(ksize,ksize), sigma);
+    cv::GaussianBlur(unblured_grayscale, grayscale, cv::Size(ksize,ksize), sigma);
 
 
     if(debug_info) {
-        frame_debug = frame.clone();
+        frame_debug = camera_frame.clone();
     }
-
-    ///=== STEP 1 ===
-    // Convert original image into gray scale
-    cv::cvtColor(frame, grayscale, CV_RGB2GRAY);
 
     ///=== STEP 2 ===
     //Calculate threshold image from the gray scale
-    int max_value;
     cv::Mat hist_ = mcv::compute_hist(grayscale, max_value);
     cv::Mat normHist = mcv::normalize_hist(hist_, grayscale);
-    int threshold = mcv::compute_Otsu_thresholding(normHist);
+    threshold = mcv::compute_Otsu_thresholding(normHist);
     cv::Mat frame_th = mcv::image_threshold(threshold, grayscale);
+    cv::Mat unblured_frame_th = mcv::image_threshold(threshold, unblured_grayscale); // Unblured thresholded image
 
     ///=== STEP 3 ===
     // Boundary extraction
@@ -189,6 +192,8 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     for (mcv::boundary &boundary : boundaries) {
         cv::Mat warped_img;
 
+
+
         ///=== STEP 9 ===
         // find Homography
         std::vector<cv::Vec2d> corners;
@@ -196,7 +201,8 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
             corners.push_back(cv::Vec2d(corner[0], corner[1]));
         }
         cv::Mat H = cv::findHomography(corners, mcv::marker::DST_POINTS);
-        cv::warpPerspective(frame_th, warped_img, H.inv(), cv::Size(256, 256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
+        //cv::warpPerspective(frame_th, warped_img, H.inv(), cv::Size(256, 256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
+        cv::warpPerspective(unblured_frame_th, warped_img, H.inv(), cv::Size(256, 256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
         ///=== STEP 10 ===
         // Detect orientation
         int orientation = mcv::marker::detect_orientation(warped_img);
@@ -230,7 +236,7 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
             cv::Mat output_img;
 
             cv::warpPerspective(matched_image, output_img, picture_rotation, cv::Size(256, 256));
-            cv::warpPerspective(output_img, camera_frame, H, cv::Size(frame.cols, frame.rows), cv::WARP_INVERSE_MAP, cv::BORDER_TRANSPARENT);
+            cv::warpPerspective(output_img, camera_frame, H, cv::Size(camera_frame.cols, camera_frame.rows), cv::WARP_INVERSE_MAP, cv::BORDER_TRANSPARENT);
         }
 
         if(debug_info){

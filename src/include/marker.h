@@ -16,8 +16,21 @@ namespace mcv{
         const int BOUNDARY_MAX_LENGTH = 1500;//1200;
 
         /// Threshold value for marker matching
+        /* This is a very important parameter:
+         * value must be between 0.0 and 1.0 and is the threshold of probability that is a given marker.
+         * value close to 1.0:
+         *      - easier to reject marker as candidate because we request that marker extracted must be very similar to
+         *        the original, in this configuration its difficult to confuse between the two markers
+         * value far away for 1.0:
+         *      - easier to consider a candidate marker as a marker also if "noised" but in this configuration its more
+         *        probable to have confusion between the two markers
+         * In this project I have chosen a value close to 1.0 because I would like to see correct marker or not at all,
+         * if you prefer to see markers also if there is higer probability to confuse them you are free to change this
+         * parameter ( for example 0.85 ensure strong detection also on fast movement or high inclination but
+         * maybe you will see the wrong marker )
+         *
+         * */
         const float MATCH_THRESHOLD = 0.90f;
-
         /// Constants related to marker orientation detection
         const int WIDTH = 135;
         const int HEIGHT = 55;
@@ -91,8 +104,9 @@ namespace mcv{
 
 
         /**
-         * This function execute the pipeline to apply AR to the original image "frame", the pipeline is the following:
-         * 1) Read frame and convert in grayscale
+         * This function execute the pipeline to apply AR to the original image "camera_frame", the pipeline is the following:
+         * 0) Convert originale frame and convert in grayscale
+         * 1) Apply GaussianBlur to remove noise
          * 2) Apply Otzu threshold to grayscale image
          * 3) Extract image boundaries
          * 4) Filter the above boundaries with length between BOUNDARY_MIN_LENGTH and BOUNDARY_MAX_LENGTH
