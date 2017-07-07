@@ -8,13 +8,13 @@ Marco Signoretto 850484
 
 ### GOALS ###
 I have tried to write code efficient and reusable and group it into file with different goals.
-Definition and declaration are splitted into different files, so ```CMakeLists.txt``` has been edited as well 
+Definition and declaration are splitted into different files, so ```CMakeLists.txt``` and ```src/CMakeLists.txt``` has been edited as well 
 
 ### File ###
-In the project there is the original ```data``` folder with all the files used by the progrma and the files used to test program:
+In the project there is the original ```data``` folder with all the files used by the program and the files used to test program:
 
 # Setup #
-The code must be build and setup has default template for this course as the following:
+The code must be build and setup from the default template for this course as the following:
 
 ## How to build: ##
 
@@ -31,21 +31,51 @@ for example mine is
 cmake  ../ -DOpenCV_DIR="/usr/local/Cellar/opencv3/HEAD-c1007c7" 
 ```
 
-//TODO -DCMAKE_BUILD_TYPE=Release vedere come aggiungere
-
 ## How to run: ##
+
+### CMake target run ###
 In order to run the project you need to perform the following commands:
 ```sh
+cd build
 make install
-cd dist/bin
+make run.....
 ```
-and then invoke the program with some arguments, for example:
+The preconfigured target that has been created are:
+
+#### Webcam ####
 ```sh
-//TODO COMPLETE
+make run
+make run_D
 ```
 
--DCMAKE_BUILD_TYPE=Release
-#### Program arguments: ###
+#### Video ####
+```sh
+make run_video1
+make run_video1_D
+make run_video2
+make run_video2_D
+```
+
+#### Image ####
+```sh
+make run_image1
+make run_image1_D
+make run_image2
+make run_image2_D
+make run_image3
+make run_image3_D
+make run_image4
+make run_image4_D
+```
+
+### Executable run ###
+
+and then invoke the program with some arguments, for example:
+```sh
+./project list_of_args...
+```
+
+#### Program arguments available: ###
 1. ```-D``` or ```--Debug``` enable debug info, in this way we can observe how boundaries has been detected and other debug info (to have fast execution you shouldn't add it)
 
 2. ```-s``` or ```--source``` this argument required an additional parameter which is the source of the frame. The possible sourse are: ```image```,```video```,```webcam``` the last one is the defualt source.
