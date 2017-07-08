@@ -40,8 +40,13 @@ namespace mcv{
         }
 
 
+        /**
+         * This function compute boundary corners from a harrisCorner output image
+         * @param img_corners: grayscale image extracted from harrisCorner detection
+         */
         void compute_corners(cv::Mat& img_corners){
-            int kernel_size = 3;
+            const float CORNER_THRESHOLD = 2.0f;
+            int kernel_size = 3; // Allow better corner recognition
             bool on_corner = false;
             cv::Vec2i* corner = nullptr;
             float corner_intensity = 0.0f;
@@ -51,11 +56,11 @@ namespace mcv{
                 // Calculate intensity based on neighbourhood
                 float current_intensity = 0.0f;
                 const float *p;
-                for(int y = point[1]+1-kernel_size; y <= point[1]+1+kernel_size; ++y) {
+                for(int y = point[1]+1-kernel_size; y <= point[1]+1+kernel_size; ++y) { // Added 1px because img_corners is an image with padding
                     if (y >= 0 && y < img_corners.rows) { // Bound checking
                         p = img_corners.ptr<float>(y);
                         for (int x = point[0] + 1 - kernel_size; x <= point[0] + 1 + kernel_size; ++x) {
-                            if (x >= 0 && x < img_corners.cols) { // Bound checking
+                            if (x >= 0 && x < img_corners.cols) { // Bound checking for neighbour tecnique
                                 current_intensity += p[x];
                             }
                         }
@@ -63,13 +68,14 @@ namespace mcv{
                 }
 
                 // Check if point is a corner or not
-                if(current_intensity > 1.0f){
+                if(current_intensity > CORNER_THRESHOLD){
                     if(!on_corner){
                         on_corner = true;
                     }
+                    // Already on corner but if greater intensity update corner
                     if(current_intensity>corner_intensity){
                         corner_intensity = current_intensity;
-                        corner = &point;
+                        corner = &point; // Use reference to point so no normalization problem
                     }
                 }else{
                     if(on_corner){
@@ -89,12 +95,12 @@ namespace mcv{
         /**
          * Normalize corner values ( remove padding )
          */
-        void normalizeCorners(){
+        /*void normalizeCorners(){
             for (cv::Vec2i& corner: corners) {
                 corner[0]-=1;
                 corner[1]-=1;
             }
-        }
+        }*/
     };
 
 

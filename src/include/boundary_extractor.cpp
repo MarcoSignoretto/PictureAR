@@ -325,7 +325,7 @@ void boundary_extractor::create_boundaries_image(cv::Mat& image) {
     image = cv::Mat::zeros(image_.rows, image_.cols, CV_8UC1); // image is larger of 1 px respect to input
 
     for(boundary& b : boundaries_){
-        draw_boundary(image,b); // draw red line into image respect to boundary pixels
+        draw_boundary(image,b,true); // draw each boundary
     }
 
 }
@@ -371,9 +371,9 @@ inline void boundary_extractor::draw_corners(cv::Mat& image, const boundary &b) 
         int i_origin = v[1];
 
         // Remove all color from blue and green channel and add full color to green channel
-        for (int i = i_origin-offset; i<i_origin+offset; ++i) {
+        for (int i = i_origin-offset; i<=i_origin+offset; ++i) {
             if (i >= 0 && i < image.rows) {
-                for (int j = j_origin - offset; j < j_origin + offset; ++j) {
+                for (int j = j_origin - offset; j <= j_origin + offset; ++j) {
                     if (j >= 0 && j < image.cols) {
                         cv::Vec3b &intensity = image.at<cv::Vec3b>(i, j);
 
@@ -387,19 +387,19 @@ inline void boundary_extractor::draw_corners(cv::Mat& image, const boundary &b) 
     }
 }
 
-inline void boundary_extractor::draw_boundary(cv::Mat& image, const boundary &b) {
-
+inline void boundary_extractor::draw_boundary(cv::Mat& image, const boundary &b, const bool padding) {
+    const int padding_offeset = (padding)? 1 : 0;
     assert((image.channels() == 1 || image.channels() == 3) && "Invalid channel number");
     if(image.channels()==1) {
         for (cv::Vec2i v : b.points) {
-            int j = v[0] + 1;// +1 is in order to add padding in image
-            int i = v[1] + 1;
+            int j = v[0] + padding_offeset;// +1 is in order to add padding in image
+            int i = v[1] + padding_offeset;
             image.at<uchar>(i, j) = 255;
         }
     }else{
         for (cv::Vec2i v : b.points) {
-            int j = v[0] + 1;// +1 is in order to add padding in image
-            int i = v[1] + 1;
+            int j = v[0] + padding_offeset;// +1 is in order to add padding in image
+            int i = v[1] + padding_offeset;
             cv::Vec3b &intensity = image.at<cv::Vec3b>(i, j);
             intensity[0] = 0;
             intensity[1] = 0;

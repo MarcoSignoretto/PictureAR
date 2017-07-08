@@ -174,8 +174,9 @@ namespace mcv{
          * This function draw boundary into the "image"
          * @param image: destination of boundary drawing ( must have 3 channels and colored or single channel grayscale )
          * @param b: boundary which will be drawn
+         * @param padding: if the destination image "image" has 1 pixel of padding or not
          */
-        inline void draw_boundary(cv::Mat& image, const boundary &b);
+        inline void draw_boundary(cv::Mat& image, const boundary &b, const bool padding = false);
 
         /**
          * This function remove offset of padding image for all boundary points of each boundary

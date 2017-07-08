@@ -135,7 +135,10 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     cv::Mat frame_debug;
     cv::Mat grayscale;
     cv::Mat unblured_grayscale;
-    cv::Mat boundaries_img;
+    cv::Mat frame_th;
+    cv::Mat unblured_frame_th;
+    cv::Mat boundaries_img; // 1px larger than camera_frame
+
     int threshold;
     int max_value;
 
@@ -148,7 +151,6 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     int ksize = 7;
     cv::GaussianBlur(unblured_grayscale, grayscale, cv::Size(ksize,ksize), sigma);
 
-
     if(debug_info) {
         frame_debug = camera_frame.clone();
     }
@@ -158,8 +160,8 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     cv::Mat hist_ = mcv::compute_hist(grayscale, max_value);
     cv::Mat normHist = mcv::normalize_hist(hist_, grayscale);
     threshold = mcv::compute_Otsu_thresholding(normHist);
-    cv::Mat frame_th = mcv::image_threshold(threshold, grayscale);
-    cv::Mat unblured_frame_th = mcv::image_threshold(threshold, unblured_grayscale); // Unblured thresholded image
+    frame_th = mcv::image_threshold(threshold, grayscale);
+    unblured_frame_th = mcv::image_threshold(threshold, unblured_grayscale); // Unblured thresholded image
 
     ///=== STEP 3 ===
     // Boundary extraction
@@ -173,7 +175,7 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     be.create_boundaries_image(boundaries_img);// 1 pixel of padding
 
     ///=== STEP 6 ===
-    //===detect corners of the boundaries with harris corner ===
+    //===detect corners of the boundaries with harris corner (WARNING both images has 1px of padding respect the original one )
     cv::Mat img_corners = cv::Mat::zeros(boundaries_img.rows, boundaries_img.cols, CV_32FC1); // float values
     int block_size = 11;//11;//Good 7
     int kernel_size = 7;//7;// Good 5
@@ -253,8 +255,10 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
         be.draw_boundaries(frame_debug);
         be.draw_boundaries_corners(frame_debug);
 
+        cv::imshow("thresholded", frame_th);
         cv::imshow("corners", img_corners);
         cv::imshow("live", frame_debug);
+
     }
 }
 
