@@ -21,7 +21,6 @@ int mcv::marker::detect_orientation(const cv::Mat& warped_image) {
     int accumulator_90 = 0;
     int accumulator_180 = 0;
     int accumulator_270 = 0;
-    // TODO define rect for accumulators
     int y,x;
     const uchar* p;
     for( y = OFFSET; y < warped_image.rows-OFFSET; ++y) {
@@ -161,12 +160,13 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     cv::Mat normHist = mcv::normalize_hist(hist_, grayscale);
     threshold = mcv::compute_Otsu_thresholding(normHist);
     frame_th = mcv::image_threshold(threshold, grayscale);
-    unblured_frame_th = mcv::image_threshold(threshold, unblured_grayscale); // Unblured thresholded image
+    // Unblured thresholded image ( use same threshold of the previous one )
+    unblured_frame_th = mcv::image_threshold(threshold, unblured_grayscale);
 
     ///=== STEP 3 ===
     // Boundary extraction
-    mcv::boundary_extractor be(grayscale);
-    be.find_boundaries();
+    mcv::boundary_extractor be(frame_th, false);
+    be.find_boundaries(mcv::BLACK);
 
     ///=== STEP 4 ===
     be.keep_between(BOUNDARY_MIN_LENGTH, BOUNDARY_MAX_LENGTH);

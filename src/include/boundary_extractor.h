@@ -8,6 +8,7 @@
 #include <vector>
 #include <opencv2/core/mat.hpp>
 #include "boundary.h"
+#include "utils.h"
 
 namespace mcv{
 
@@ -28,21 +29,24 @@ namespace mcv{
 
         /**
         * Constructor: as before but using a gray scale image instead of a filename
-        * @param image_gray: GrayScale image
+        * @param image_gray: GrayScale image if "compute_threshold" = true, thresholded image if compute threshold = false
+        * @param compute_threshold: if true an otsu threshold will be compute into input image
         */
-        boundary_extractor(const cv::Mat image_gray);
+        boundary_extractor(const cv::Mat image_gray, bool compute_threshold = true);
 
         /**
          * Find al boundaries of the image
+         * @param boundary_color: color of the boundary ( mcv::BLACK or mcv::WHITE )
          */
-        void find_boundaries();
+        void find_boundaries(const uchar boundary_color = WHITE);
 
         /**
          * Given a point with coordinate x,y find boundary starting from that point
          * @param x is the column index of image
          * @param y is the row index of the image
+         * @param boundary_color: color of the boundary ( mcv::BLACK or mcv::WHITE )
          */
-        inline boundary moore_algorithm(int x, int y);
+        inline boundary moore_algorithm(int x, int y, const uchar boundary_color);
 
         /**
          * Draw boundaries evaluated with find_boundaries and alive after keep_between
@@ -93,7 +97,7 @@ namespace mcv{
          * This function returns all boundaries which haven't been throw away
          * @return boundaries
          */
-        std::vector<boundary>& get_boundaries(){
+        inline std::vector<boundary>& get_boundaries(){
             return boundaries_;
         }
 
@@ -107,8 +111,6 @@ namespace mcv{
         const std::string filename_;
         // Image thresholded with 1 pixel of padding outside
         cv::Mat image_;
-        // histogram of the image
-        cv::Mat hist_;
         // Vector of all boundaries of the image ( full after calling find_boundaries )
         std::vector<boundary> boundaries_;
 
@@ -136,9 +138,10 @@ namespace mcv{
          * @param current_b: center of the clock
          * @param c: used as return param (contain new c value if found = true)
          * @param b: used as return param (contain new b value if found = true)
+         * @param boundary_color: color of the boundary ( mcv::BLACK or mcv::WHITE )
          * @return found: true if a new b and c are found false otherwise ( single point boundary never found new b,c)
          */
-        inline bool search_clockwise(cv::Vec2i& current_c, cv::Vec2i& current_b, cv::Vec2i* c, cv::Vec2i* b);
+        inline bool search_clockwise(cv::Vec2i& current_c, cv::Vec2i& current_b, cv::Vec2i* c, cv::Vec2i* b, const uchar boundary_color);
 
         /**
          * Find clock index of c given that center is b

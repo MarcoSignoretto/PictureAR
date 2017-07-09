@@ -14,23 +14,13 @@ using namespace mcv;
 
 boundary_extractor::boundary_extractor(const std::string& filename):filename_(filename){
     const cv::Mat image_gray = cv::imread(filename, cv::IMREAD_GRAYSCALE);
-    //Calculate histogram
-    int max_value;
-    hist_ = compute_hist(image_gray, max_value);
 
-    // normalize histogram
-    cv::Mat normHist = normalize_hist(hist_, image_gray);
-
-    //compute OtsuThresholding
-    int threshold = compute_Otsu_thresholding(normHist);
-
-    //generate image from threshold
-    cv::Mat image = image_threshold(threshold, image_gray);
+    //compute otsu thresholding
+    cv::Mat image;
+    mcv::image_otsu_thresholding(image_gray,image);
 
     // Create image with 1 pixels of padding in order to avoid bounds checking on moor algorithm
     image_ = cv::Mat::zeros(image.rows+2, image.cols+2, CV_8UC1);
-
-    assert(image_.channels() == 1 && "Invalid channel number");
 
     int nRows = image_.rows;
     int nCols = image_.cols;
@@ -53,24 +43,20 @@ boundary_extractor::boundary_extractor(const std::string& filename):filename_(fi
 }
 
 
-boundary_extractor::boundary_extractor(const cv::Mat image_gray):filename_(""){
-    //Calculate histogram
-    int max_value;
-    hist_ = compute_hist(image_gray, max_value);
+boundary_extractor::boundary_extractor(const cv::Mat image_gray, bool compute_threshold):filename_(""){
 
-    // normalize histogram
-    cv::Mat normHist = normalize_hist(hist_, image_gray);
+    assert(image_.channels() == 1 && "Invalid channel number");
 
-    //compute OtsuThresholding
-    int threshold = compute_Otsu_thresholding(normHist);
-
-    //generate image from threshold
-    cv::Mat image = image_threshold(threshold, image_gray);
+    //compute otsu thresholding
+    cv::Mat image;
+    if(compute_threshold) {
+        mcv::image_otsu_thresholding(image_gray, image);
+    }else{
+        image = image_gray; // soft copy
+    };
 
     // Create image with 1 pixels of padding in order to avoid bounds checking on moor algorithm
     image_ = cv::Mat::zeros(image.rows+2, image.cols+2, CV_8UC1);
-
-    assert(image_.channels() == 1 && "Invalid channel number");
 
     int nRows = image_.rows;
     int nCols = image_.cols;
@@ -90,7 +76,8 @@ boundary_extractor::boundary_extractor(const cv::Mat image_gray):filename_(""){
     }
 }
 
-void boundary_extractor::find_boundaries() {
+void boundary_extractor::find_boundaries(const uchar boundary_color) {
+    const uchar other_color = (boundary_color==WHITE)? BLACK : WHITE;
     // clear boundaries in order to recompute all
     boundaries_.clear();
     // this flag is used to skip white pixels that are close each other
@@ -108,14 +95,14 @@ void boundary_extractor::find_boundaries() {
         for ( j = 1; j < nCols-1; ++j) {
 
             // Condition true when algorithm must consider valid next pixels
-            if(!valid_next && (p[j] == BLACK)){
+            if(!valid_next && (p[j] == other_color)){
                 valid_next = true;
             }// If condition true the pixel is a candidate solution for a begin of a boundary
-            else if(valid_next && (p[j] == WHITE)){
+            else if(valid_next && (p[j] == boundary_color)){
                 valid_next = false;
                 // if is a valid boundary point find boundary with moore algorithm and then add to boundaries set
                 if(is_valid(j,i)) {
-                    boundaries_.push_back(moore_algorithm(j, i));
+                    boundaries_.push_back(moore_algorithm(j, i, boundary_color));
                 }
             }
         }
@@ -144,7 +131,7 @@ inline bool boundary_extractor::check_in(const boundary &b, int x, int y) {
 
 }
 
-inline boundary boundary_extractor::moore_algorithm(int x, int y) {
+inline boundary boundary_extractor::moore_algorithm(int x, int y, const uchar boundary_color) {
     cv::Vec2i b(-1,-1);
     cv::Vec2i c(-1,-1);
     boundary boundary;
@@ -154,18 +141,18 @@ inline boundary boundary_extractor::moore_algorithm(int x, int y) {
     // Add b0 to pixel set
     boundary.add_item(b0);
     // search next pixel ( if is false only if b0 is unique pixel into boundary )
-    if(search_clockwise(c0, b0, &c, &b)){
+    if(search_clockwise(c0, b0, &c, &b, boundary_color)){
         // Iterate over boundary searching in clockwise until reach already b0
         while(b0[0] != b[0] || b0[1] != b[1]){
             boundary.add_item(b);
-            search_clockwise(c, b, &c, &b); // use same c and b as input and output ( see search clockwise docs )
+            search_clockwise(c, b, &c, &b, boundary_color); // use same c and b as input and output ( see search clockwise docs )
         }
     }
     return boundary;
 }
 
 
-inline bool boundary_extractor::search_clockwise(cv::Vec2i& current_c, cv::Vec2i& current_b, cv::Vec2i* c_ptr, cv::Vec2i* b_ptr) {
+inline bool boundary_extractor::search_clockwise(cv::Vec2i& current_c, cv::Vec2i& current_b, cv::Vec2i* c_ptr, cv::Vec2i* b_ptr, const uchar boundary_color) {
     cv::Vec2i& c = *c_ptr;
     cv::Vec2i& b = *b_ptr;
     int iteration = 0; // iteration counter used to detect 1 pixel boundary
@@ -178,7 +165,7 @@ inline bool boundary_extractor::search_clockwise(cv::Vec2i& current_c, cv::Vec2i
         // NB c updated before b because if update b before algorithm not work if current_b == *b_ptr
         switch(index){
             case 0:
-                if(image_.at<uchar>(current_b[1]-1,current_b[0]-1) == WHITE){  // start from pixel over current and procede in clockwise order
+                if(image_.at<uchar>(current_b[1]-1,current_b[0]-1) == boundary_color){  // start from pixel over current and procede in clockwise order
                     found = true;
                     c[0] = current_b[0]-1;
                     c[1] = current_b[1];
@@ -187,7 +174,7 @@ inline bool boundary_extractor::search_clockwise(cv::Vec2i& current_c, cv::Vec2i
                 }
                 break;
             case 1:
-                if(image_.at<uchar>(current_b[1]-1,current_b[0]) == WHITE){
+                if(image_.at<uchar>(current_b[1]-1,current_b[0]) == boundary_color){
                     found = true;
                     c[0] = current_b[0]-1;
                     c[1] = current_b[1]-1;
@@ -196,7 +183,7 @@ inline bool boundary_extractor::search_clockwise(cv::Vec2i& current_c, cv::Vec2i
                 }
                 break;
             case 2:
-                if(image_.at<uchar>(current_b[1]-1,current_b[0]+1) == WHITE){
+                if(image_.at<uchar>(current_b[1]-1,current_b[0]+1) == boundary_color){
                     found = true;
                     c[0] = current_b[0];
                     c[1] = current_b[1]-1;
@@ -205,7 +192,7 @@ inline bool boundary_extractor::search_clockwise(cv::Vec2i& current_c, cv::Vec2i
                 }
                 break;
             case 3:
-                if(image_.at<uchar>(current_b[1],current_b[0]+1) == WHITE){
+                if(image_.at<uchar>(current_b[1],current_b[0]+1) == boundary_color){
                     found = true;
                     c[0] = current_b[0]+1;
                     c[1] = current_b[1]-1;
@@ -214,7 +201,7 @@ inline bool boundary_extractor::search_clockwise(cv::Vec2i& current_c, cv::Vec2i
                 }
                 break;
             case 4:
-                if(image_.at<uchar>(current_b[1]+1,current_b[0]+1) == WHITE){
+                if(image_.at<uchar>(current_b[1]+1,current_b[0]+1) == boundary_color){
                     found = true;
                     c[0] = current_b[0]+1;
                     c[1] = current_b[1];
@@ -223,7 +210,7 @@ inline bool boundary_extractor::search_clockwise(cv::Vec2i& current_c, cv::Vec2i
                 }
                 break;
             case 5:
-                if(image_.at<uchar>(current_b[1]+1,current_b[0]) == WHITE){
+                if(image_.at<uchar>(current_b[1]+1,current_b[0]) == boundary_color){
                     found = true;
                     c[0] = current_b[0]+1;
                     c[1] = current_b[1]+1;
@@ -232,7 +219,7 @@ inline bool boundary_extractor::search_clockwise(cv::Vec2i& current_c, cv::Vec2i
                 }
                 break;
             case 6:
-                if(image_.at<uchar>(current_b[1]+1,current_b[0]-1) == WHITE){
+                if(image_.at<uchar>(current_b[1]+1,current_b[0]-1) == boundary_color){
                     found = true;
                     c[0] = current_b[0];
                     c[1] = current_b[1]+1;
@@ -241,7 +228,7 @@ inline bool boundary_extractor::search_clockwise(cv::Vec2i& current_c, cv::Vec2i
                 }
                 break;
             case 7:
-                if(image_.at<uchar>(current_b[1],current_b[0]-1) == WHITE){
+                if(image_.at<uchar>(current_b[1],current_b[0]-1) == boundary_color){
                     found = true;
                     c[0] = current_b[0]-1;
                     c[1] = current_b[1]+1;
@@ -371,6 +358,7 @@ inline void boundary_extractor::draw_corners(cv::Mat& image, const boundary &b) 
         int i_origin = v[1];
 
         // Remove all color from blue and green channel and add full color to green channel
+        // Corners are drawn with "offset" has extra size to make them more visible
         for (int i = i_origin-offset; i<=i_origin+offset; ++i) {
             if (i >= 0 && i < image.rows) {
                 for (int j = j_origin - offset; j <= j_origin + offset; ++j) {
@@ -392,13 +380,13 @@ inline void boundary_extractor::draw_boundary(cv::Mat& image, const boundary &b,
     assert((image.channels() == 1 || image.channels() == 3) && "Invalid channel number");
     if(image.channels()==1) {
         for (cv::Vec2i v : b.points) {
-            int j = v[0] + padding_offeset;// +1 is in order to add padding in image
+            int j = v[0] + padding_offeset;// +padding_offeset is in order to add padding in image
             int i = v[1] + padding_offeset;
             image.at<uchar>(i, j) = 255;
         }
     }else{
         for (cv::Vec2i v : b.points) {
-            int j = v[0] + padding_offeset;// +1 is in order to add padding in image
+            int j = v[0] + padding_offeset;// +padding_offeset is in order to add padding in image
             int i = v[1] + padding_offeset;
             cv::Vec3b &intensity = image.at<cv::Vec3b>(i, j);
             intensity[0] = 0;
@@ -427,12 +415,6 @@ void boundary_extractor::keep_between_corners(int min_corners, int max_corners){
         if(boundaries_[i].corners_number < min_corners || boundaries_[i].corners_number > max_corners)boundaries_.erase(boundaries_.begin()+i);
     }
 }
-
-/*void boundary_extractor::compute_corners(){
-    for(boundary& b : boundaries_){
-        b.compute_corners();
-    }
-}*/
 
 void boundary_extractor::compute_corners(cv::Mat& img_corners){
     for(boundary& b : boundaries_){

@@ -71,9 +71,6 @@ namespace mcv{
                 cv::Vec2d(0, 256),
         };
 
-        // Constant for BLACK pixel in thresholded image
-        const int BLACK = 0;
-
         /**
          * Detect orientation of a given marker and return its orientation in degree to obtain the original marker orientation
          * @param warped_image: image that shold be contain a marker to work properly (must be thresholded and 256x256)

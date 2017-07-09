@@ -64,18 +64,12 @@ int main( int argc, char* argv[] ) {
     const cv::Mat img_1m = cv::imread("data/1M.png", cv::IMREAD_GRAYSCALE);
 
     //Threshold img_0m
-    int max_value_img_0m;
-    cv::Mat hist_img_0m = mcv::compute_hist(img_0m, max_value_img_0m);
-    cv::Mat normHist_img_0m = mcv::normalize_hist(hist_img_0m, img_0m);
-    int threshold_img_0m = mcv::compute_Otsu_thresholding(normHist_img_0m);
-    const cv::Mat img_0m_th = mcv::image_threshold(threshold_img_0m, img_0m);
+    cv::Mat img_0m_th;
+    mcv::image_otsu_thresholding(img_0m,img_0m_th);
 
     // Threshold img_1m
-    int max_value_img_1m;
-    cv::Mat hist_img_1m = mcv::compute_hist(img_1m, max_value_img_1m);
-    cv::Mat normHist_img_1m = mcv::normalize_hist(hist_img_1m, img_1m);
-    int threshold_img_1m = mcv::compute_Otsu_thresholding(normHist_img_1m);
-    const cv::Mat img_1m_th = mcv::image_threshold(threshold_img_1m, img_1m);
+    cv::Mat img_1m_th;
+    mcv::image_otsu_thresholding(img_1m,img_1m_th);
 
 
     ///======= HANDLE DIFFERENT SOURCES =======

@@ -10,18 +10,24 @@
 #include <opencv2/core/core.hpp>
 
 namespace mcv{
-    struct boundary{
+    class boundary{
     public:
         int min_x = -1;
         int min_y = -1;
         int max_x = -1;
         int max_y = -1;
-        int length = 0;
+        int length = 0; // Length of the boundary
         int corners_number = 0;
 
+        // Set of points which compose the boundary
         std::vector<cv::Vec2i> points; // clock wise ordered
+        // Set of point which compose the corners
         std::vector<cv::Vec2i> corners; // clock wise ordered
 
+        /**
+         * This function allow to add a point
+         * @param b: point to add into boundary
+         */
         void add_item(cv::Vec2i& b){
             ++length;
             // Updated max and min x,y values used for performance improvements  (corner case max = min)
@@ -32,75 +38,16 @@ namespace mcv{
             points.push_back(b); // add pixel to boundary points
         }
 
-        void print(){
-            std::cout << "Boundary:" << std::endl;
-            for (cv::Vec2i& v : points) {
-                std::cout << "(" << v[0] << "," << v[1] << ")" << std::endl;
-            }
-        }
-
+        /**
+         * This function print all boundaries
+         */
+        void print();
 
         /**
          * This function compute boundary corners from a harrisCorner output image
          * @param img_corners: grayscale image extracted from harrisCorner detection
          */
-        void compute_corners(cv::Mat& img_corners){
-            const float CORNER_THRESHOLD = 2.0f;
-            int kernel_size = 3; // Allow better corner recognition
-            bool on_corner = false;
-            cv::Vec2i* corner = nullptr;
-            float corner_intensity = 0.0f;
-            for(int i = 0; i < points.size(); ++i) {
-                cv::Vec2i &point = points[i];
-
-                // Calculate intensity based on neighbourhood
-                float current_intensity = 0.0f;
-                const float *p;
-                for(int y = point[1]+1-kernel_size; y <= point[1]+1+kernel_size; ++y) { // Added 1px because img_corners is an image with padding
-                    if (y >= 0 && y < img_corners.rows) { // Bound checking
-                        p = img_corners.ptr<float>(y);
-                        for (int x = point[0] + 1 - kernel_size; x <= point[0] + 1 + kernel_size; ++x) {
-                            if (x >= 0 && x < img_corners.cols) { // Bound checking for neighbour tecnique
-                                current_intensity += p[x];
-                            }
-                        }
-                    }
-                }
-
-                // Check if point is a corner or not
-                if(current_intensity > CORNER_THRESHOLD){
-                    if(!on_corner){
-                        on_corner = true;
-                    }
-                    // Already on corner but if greater intensity update corner
-                    if(current_intensity>corner_intensity){
-                        corner_intensity = current_intensity;
-                        corner = &point; // Use reference to point so no normalization problem
-                    }
-                }else{
-                    if(on_corner){
-                        corners_number += 1;
-                        corners.push_back(*corner);
-                        on_corner = false;
-                        corner_intensity = 0.0f;
-                        corner = nullptr;
-                    }
-                }
-
-            }
-        }
-
-
-    private:
-        /**
-         * Normalize corner values ( remove padding )
-         */
-        /*void normalizeCorners(){
-            for (cv::Vec2i& corner: corners) {
-                corner[0]-=1;
-                corner[1]-=1;
-            }
-        }*/
+        void compute_corners(cv::Mat& img_corners);
     };
 
 

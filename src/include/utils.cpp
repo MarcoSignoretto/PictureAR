@@ -159,6 +159,19 @@ cv::Mat mcv::image_threshold(int threshold, const cv::Mat &image_gray){
     return image_threshold;
 }
 
+void mcv::image_otsu_thresholding(const cv::Mat &image_gray, cv::Mat& image_th) {
+    assert(image_gray.channels()==1 && "Invalid channels number");
+    //Calculate histogram
+    int max_value;
+    cv::Mat hist = compute_hist(image_gray, max_value);
+    // normalize histogram
+    cv::Mat normHist = normalize_hist(hist, image_gray);
+    //compute OtsuThresholding
+    int threshold = compute_Otsu_thresholding(normHist);
+    //generate image from threshold
+    image_th = image_threshold(threshold, image_gray);
+}
+
 void mcv::compute_rho_theta_plane(const cv::Mat &window_mat, cv::Mat& H, cv::Point2f& best_rho_theta) {
     int max_value = -1;
     int theta_max = 180; // 180 degree if range of theta
@@ -298,3 +311,5 @@ cv::Mat mcv::to_image(cv::Mat &rho_theta_plane) {
     }
     return img;
 }
+
+

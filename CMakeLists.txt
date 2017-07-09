@@ -15,6 +15,7 @@ set(CvLab_BRIEF "${CV2017_NAME} is the project of the computer vision course 201
 set (CMAKE_CXX_STANDARD 11)
 
 set(SOURCE_FILES
+        include/boundary.cpp
         include/feature_drawer.cpp
         include/boundary_extractor.cpp
         include/utils.cpp

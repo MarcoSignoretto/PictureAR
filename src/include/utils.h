@@ -12,8 +12,8 @@ using namespace std;
 namespace mcv{
 
     // TODO changed here to test idea ( WHITE should be 255)
-    const uchar WHITE = 0;
-    const uchar BLACK = 255;
+    const uchar WHITE = 255;
+    const uchar BLACK = 0;
 
     /**
      * Normalize histogram of image
@@ -86,6 +86,14 @@ namespace mcv{
      * @return
      */
     cv::Mat image_threshold(int threshold, const cv::Mat &image_gray);
+
+    /**
+     * Compute full image otsu thresholding process:
+     * hist + normalization + thresholding
+     * @param image_gray: input grayscale image
+     * @param image_th: output thresholded image
+     */
+    void image_otsu_thresholding(const cv::Mat& image_gray, cv::Mat& image_th);
 
     /**
      *
