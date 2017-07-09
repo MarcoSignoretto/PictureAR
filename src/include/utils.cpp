@@ -60,19 +60,6 @@ cv::Mat mcv::compute_hist(const cv::Mat& image_gray, int& max_value){
             if(hist_value > max_value) max_value = hist_value;
         }
     }
-
-    /*auto it = image_gray.begin<uchar>();
-    auto it_end = image_gray.end<uchar>();
-    while(it < it_end){
-        // get intensity of pixel at i,j position and use his value as index for increase frequency of histogram
-        // for that intensity
-        int j_index = (int)(*it);
-        int& hist_value = hist.at<int>(0, j_index);
-        hist_value += 1;
-        //update max frequency if needed
-        if(hist_value > max_value) max_value = hist_value;
-        ++it; // increase iterator ( go to next item )
-    }*/
     return hist;
 }
 
@@ -313,8 +300,6 @@ cv::Mat mcv::to_image(cv::Mat &rho_theta_plane) {
 }
 
 void mcv::draw_rect(cv::Mat& dst, const std::vector<cv::Point>& rect) {
-    //assert(dst.channels() == 3 && "Invalid channel number");
-
     cv::rectangle(dst,rect[0],rect[1],cv::Scalar(255,0,255));
 }
 
