@@ -312,4 +312,10 @@ cv::Mat mcv::to_image(cv::Mat &rho_theta_plane) {
     return img;
 }
 
+void mcv::draw_rect(cv::Mat& dst, const std::vector<cv::Point>& rect) {
+    //assert(dst.channels() == 3 && "Invalid channel number");
+
+    cv::rectangle(dst,rect[0],rect[1],cv::Scalar(255,0,255));
+}
+
 

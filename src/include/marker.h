@@ -73,8 +73,7 @@ namespace mcv{
 
         /**
          * Detect orientation of a given marker and return its orientation in degree to obtain the original marker orientation
-         * @param warped_image: image that shold be contain a marker to work properly (must be thresholded and 256x256)
-         * @param
+         * @param warped_image: image which should be contain a marker to work properly (must be thresholded and 256x256)
          * @return 0,90,180,270 degree of rotation respect to original marker
          */
         int detect_orientation(const cv::Mat& warped_image);
@@ -85,14 +84,15 @@ namespace mcv{
          * @see detect_orientation
          * @param rotation_matrix: reference of matrix where rotation matrix will be setted
          * @param rotation_degree: rotation in degree to obtain the original marker orientation
+         * @param rotation_update: if this is true rotation matrix will be updated and not recreated
          */
-        void calculate_rotation_matrix(cv::Mat& rotation_matrix, int rotation_degree);
+        void calculate_rotation_matrix(cv::Mat& rotation_matrix, int rotation_degree, const bool rotation_update = false);
 
         /**
-         * This function works as calculate_rotation_matrix but compute matrix used to rotate placeholder before warp
+         * This function works as calculate_rotation_matrix but updated an already inited rotation_matrix which will be used to rotate picture before warp
          * @see calculate_rotation_matrix
          * @param rotation_matrix: reference of matrix where rotation matrix will be setted
-         * @param rotation_degree: rotation in degree to obtain the original marker orientation
+         * @param rotation_degree: rotation in degree to obtain the original marker orientation (WARNING not picture orientation but marker)
          */
         void calculate_picture_rotation(cv::Mat& rotation_matrix, int rotation_degree);
 
@@ -108,7 +108,7 @@ namespace mcv{
 
         /**
          * This function execute the pipeline to apply AR to the original image "camera_frame", the pipeline is the following:
-         * 0) Convert originale frame and convert in grayscale
+         * 0) Convert original frame into grayscale
          * 1) Apply GaussianBlur to remove noise
          * 2) Apply Otzu threshold to grayscale image
          * 3) Extract image boundaries
@@ -120,10 +120,9 @@ namespace mcv{
          * For each boundary:
          * 9) find homography and warp image into a 256x256 image ( from unblured_grayscale )
          * 10) detect marker orientation ( in this step also other candidate marker has been rotate because final filtering is applied during matching phase )
-         * 11) calculate rotation for placeholder
-         * 12) rotate marker in order to perform matching
-         * 13) compute matching coefficient
-         * 14) warp placeholder with higher probability into original image if matching is above MATCH_THRESHOLD
+         * 11) calculate rotation for placeholder and warp into 256x256 image to perform matching
+         * 12) compute matching coefficient
+         * 13) warp placeholder with higher probability into original image if matching is above MATCH_THRESHOLD
          *
          * @param img_0p: image placeholder 0 ( leo picture )
          * @param img_1p: image placeholder 1 ( van picture )

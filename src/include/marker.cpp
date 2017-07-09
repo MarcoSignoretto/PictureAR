@@ -5,7 +5,6 @@
 #include "marker.h"
 #include "utils.h"
 #include "boundary_extractor.h"
-#include "feature_drawer.h"
 #include <assert.h>
 #include <opencv2/imgproc.hpp>
 #include <opencv/cv.hpp>
@@ -14,57 +13,53 @@
 
 int mcv::marker::detect_orientation(const cv::Mat& warped_image) {
 
-    // TODO clean code using vector of rect and vector of accumulator
     int res = 0;
-    int max = 0;
-    int accumulator_0 = 0;
-    int accumulator_90 = 0;
-    int accumulator_180 = 0;
-    int accumulator_270 = 0;
+    int max = -1;
+    /*
+     * accumutators[0] = 0 degree accumulator
+     * accumutators[1] = 90 degree accumulator
+     * accumutators[2] = 180 degree accumulator
+     * accumutators[3] = 270 degree accumulator
+     */
+    int accumulators[] = {0, 0, 0, 0};
     int y,x;
     const uchar* p;
     for( y = OFFSET; y < warped_image.rows-OFFSET; ++y) {
         p = warped_image.ptr<uchar>(y);
         for ( x = OFFSET; x < warped_image.cols-OFFSET; ++x) {
+            // If pixel black add it into accumulator of correct region
             if(p[x] == BLACK){
                 if(x > RECT_0[0].x && x < RECT_0[1].x && y > RECT_0[0].y && y < RECT_0[1].y){
-                    ++accumulator_0;
+                    ++(accumulators[0]);
                 }
                 if(x > RECT_90[0].x && x < RECT_90[1].x && y > RECT_90[0].y && y < RECT_90[1].y){
-                    ++accumulator_90;
+                    ++(accumulators[1]);
                 }
                 if(x > RECT_180[0].x && x < RECT_180[1].x && y > RECT_180[0].y && y < RECT_180[1].y){
-                    ++accumulator_180;
+                    ++(accumulators[2]);
                 }
                 if(x > RECT_270[0].x && x < RECT_270[1].x && y > RECT_270[0].y && y < RECT_270[1].y){
-                    ++accumulator_270;
+                    ++(accumulators[3]);
                 }
             }
         }
     }
 
-    max = accumulator_0;
-    if(accumulator_90 > max){
-        max = accumulator_90;
-        res = 90;
+    // Find orientation considering accumulator with higher value.
+    for(int i=0; i<4; ++i){
+        if(accumulators[i] > max){
+            max = accumulators[i];
+            res = 90*i;
+        }
     }
-    if(accumulator_180 > max){
-        max = accumulator_180;
-        res = 180;
-    }
-    if(accumulator_270 > max){
-        max = accumulator_270; // TODO shold be removed
-        res = 270;
-    }
-
-
-    return res;// TODO change
+    return res;
 }
 
-void mcv::marker::calculate_rotation_matrix(cv::Mat& rotation_matrix, int rotation_degree) {
+void mcv::marker::calculate_rotation_matrix(cv::Mat& rotation_matrix, int rotation_degree, const bool rotation_update) {
     float radiants = 0.0f;
     float offset_x = 0.0f;
     float offset_y = 0.0f;
+    // Convert orientation into radiants and compute offset necessary to have rotation respect to center
     switch(rotation_degree){
         case 0:
             break;
@@ -86,37 +81,45 @@ void mcv::marker::calculate_rotation_matrix(cv::Mat& rotation_matrix, int rotati
         default:
             throw std::invalid_argument("only 0,90,180,270 degree are supported");
     }
-    // TODO init matrix in another way, in this way raw_data allocated in stack and mat create only reference no copy ( iterate with pointer to populate) rotation_matrix = cv::Mat(3, 3, CV_32F, raw_data doesn't work);
-    float raw_data[] = {
-            (float)cos(radiants), (float)-sin(radiants), offset_x,
-            (float)sin(radiants), (float)cos(radiants), offset_y,
+    // Init raw
+    const float raw_data[] = {
+            cos(radiants), -sin(radiants), offset_x,
+            sin(radiants), cos(radiants), offset_y,
             0.0f, 0.0f, 1.0f
     };
-    rotation_matrix = cv::Mat(3, 3, CV_32F);
-    rotation_matrix.at<float>(0,0) = raw_data[0];
-    rotation_matrix.at<float>(0,1) = raw_data[1];
-    rotation_matrix.at<float>(0,2) = raw_data[2];
-    rotation_matrix.at<float>(1,0) = raw_data[3];
-    rotation_matrix.at<float>(1,1) = raw_data[4];
-    rotation_matrix.at<float>(1,2) = raw_data[5];
-    rotation_matrix.at<float>(2,0) = raw_data[6];
-    rotation_matrix.at<float>(2,1) = raw_data[7];
-    rotation_matrix.at<float>(2,2) = raw_data[8];
 
+    // Create matrix if this isn't and update
+    if(!rotation_update) {
+        rotation_matrix = cv::Mat(3, 3, CV_32F);
+    }
 
+    // Iterate on raw data and matrix to populate or update it
+    float *p;
+    for(int y = 0; y < rotation_matrix.rows; ++y) {
+        p = rotation_matrix.ptr<float>(y);
+        for (int x = 0; x < rotation_matrix.cols; ++x) {
+            p[x] = raw_data[rotation_matrix.cols*y+x]; // copy raw data value into matrix
+        }
+    }
 }
 
-void mcv::marker::calculate_picture_rotation(cv::Mat &rotation_matrix, int rotation_degree) { // TODO understand better because this happens
-    if(rotation_degree == 90 || rotation_degree == 270) rotation_degree = (rotation_degree+180)%360;
-    calculate_rotation_matrix(rotation_matrix, rotation_degree);// TODO optimize, avoid to calculate new matrix
+void mcv::marker::calculate_picture_rotation(cv::Mat &rotation_matrix, int rotation_degree) {
+    // For picture respect marker we need to flip if degrees are 90 0 270
+    if(rotation_degree == 90 || rotation_degree == 270){
+        // Calculate orientation of picture given orientation of marker
+        rotation_degree = (rotation_degree+180)%360;
+        calculate_rotation_matrix(rotation_matrix, rotation_degree, true); // Update rotation matrix
+    }
 }
 
 float mcv::marker::compute_matching(const cv::Mat &marker_extracted, const cv::Mat &marker_candidate, const cv::Point top_left, const cv::Point bottom_right) {
 
     assert(marker_extracted.rows == marker_candidate.rows && marker_extracted.cols == marker_candidate.cols && "Dimensions mismatch");
+
     int sum = 0;
     int max = (bottom_right.x-top_left.x)*(bottom_right.y-top_left.y);
 
+    // For each pixels campare them and add one if they are equals
     const uchar *p_marker_extracted;
     const uchar *p_marker_candidate;
     for(int y = top_left.y; y < bottom_right.y; ++y) {
@@ -127,6 +130,7 @@ float mcv::marker::compute_matching(const cv::Mat &marker_extracted, const cv::M
         }
     }
 
+    // Normalize sum in order to convert into probability
     return (float)sum/(float)max;
 }
 
@@ -190,9 +194,12 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     be.keep_between_corners(4, 4);
 
     //========== HOMOGRAPHY =============
+    // All homography operation are applied into unblured image
+    // warp has benn computed in inverse_map configuration to avoid white hole.
     std::vector<mcv::boundary> &boundaries = be.get_boundaries();
     for (mcv::boundary &boundary : boundaries) {
         cv::Mat warped_img;
+        cv::Mat rotation_matrix; // This matrix will be used to find rotation of placeholders and images
 
 
 
@@ -209,52 +216,44 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
         // Detect orientation
         int orientation = mcv::marker::detect_orientation(warped_img);
 
-
-        // Calculate rotation matrixes
-        cv::Mat rotation_matrix;
-        cv::Mat picture_rotation;
-        mcv::marker::calculate_rotation_matrix(rotation_matrix, orientation); // TODO optimize this code
         ///=== STEP 11 ===
-        mcv::marker::calculate_picture_rotation(picture_rotation, orientation);
-
-        ///=== STEP 12 ===
-        // Rotate marker in correct orientation for matching
+        // Calculate rotation matrixes ( and create it )
+        mcv::marker::calculate_rotation_matrix(rotation_matrix, orientation);
         cv::warpPerspective(warped_img, warped_img, rotation_matrix.inv(), cv::Size(256, 256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
 
-        ///=== STEP 13 ===
+        ///=== STEP 12 ===
         // ============ MATCHING
         float match_0m = mcv::marker::compute_matching(img_0m_th, warped_img);
         float match_1m = mcv::marker::compute_matching(img_1m_th, warped_img);
 
 
         // Project placeholder with higher probability in original image if match above certain threshold
+        ///=== STEP 13 ===
         if (match_0m > MATCH_THRESHOLD || match_1m > MATCH_THRESHOLD) {
-
-            //float accurate_match_0m = mcv::marker::compute_matching(img_0m_th, warped_img, RECT_MATCHING[0], RECT_MATCHING[1]);
-            //float accurate_match_1m = mcv::marker::compute_matching(img_1m_th, warped_img, RECT_MATCHING[0], RECT_MATCHING[1]);
 
             const cv::Mat &matched_image = (match_0m > match_1m) ? img_0p : img_1p;
 
             cv::Mat output_img;
 
-            cv::warpPerspective(matched_image, output_img, picture_rotation, cv::Size(256, 256));
+            // Updated rotation matrix with picture rotation
+            mcv::marker::calculate_picture_rotation(rotation_matrix, orientation);
+            cv::warpPerspective(matched_image, output_img, rotation_matrix, cv::Size(256, 256));
             cv::warpPerspective(output_img, camera_frame, H, cv::Size(camera_frame.cols, camera_frame.rows), cv::WARP_INVERSE_MAP, cv::BORDER_TRANSPARENT);
         }
 
         if(debug_info){
-
-            mcv::feature_drawer::draw_rect(warped_img,mcv::marker::RECT_MATCHING);
-
             cv::imshow("warped_marker", warped_img);
             cout << "LEO: " << match_0m << ", VAN: " << match_1m << endl;
         }
 
     }
 
+    // Shows debug images with filter thresholded and feature
     if (debug_info) {
         be.draw_boundaries(frame_debug);
         be.draw_boundaries_corners(frame_debug);
 
+        cv::imshow("filtered_image", grayscale);
         cv::imshow("thresholded", frame_th);
         cv::imshow("corners", img_corners);
         cv::imshow("live", frame_debug);

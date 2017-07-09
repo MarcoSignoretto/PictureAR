@@ -146,6 +146,13 @@ namespace mcv{
      */
     cv::Mat to_image(cv::Mat& rho_theta_plane);
 
+    /**
+     * This function wrap rectangle function of openCV
+     * @param dst: colored image where write
+     * @param rect: rectangle to write
+     */
+    void draw_rect(cv::Mat& dst, const std::vector<cv::Point>& rect);
+
 }
 
 #endif //ASSIGNMENT2_UTILS_H

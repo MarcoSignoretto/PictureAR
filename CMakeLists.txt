@@ -16,7 +16,6 @@ set (CMAKE_CXX_STANDARD 11)
 
 set(SOURCE_FILES
         include/boundary.cpp
-        include/feature_drawer.cpp
         include/boundary_extractor.cpp
         include/utils.cpp
         include/marker.cpp
