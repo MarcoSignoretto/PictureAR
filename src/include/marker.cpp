@@ -185,6 +185,7 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     // TODO decide how create corner in boundaries,
     // TODO maybe good idea fill boundaries?? attention if wrong boundary contains markers!!!
     // TODO try to remove gaussian blur ( but maybe can help to remove noise )
+    // TODO check draw boundaries exception
     /*int block_size = 11;//11;//Good 7
     int kernel_size = 7;//7;// Good 5
     float free_parameter = 0.05f; // more little more corners will be found
@@ -210,7 +211,7 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
 
     //img_corners.convertTo(corners_th, CV_8UC1);
     cv::imshow("Conversion", corners_th);
-    cv::waitKey(0);
+    //cv::waitKey(0);
 
     cv::Mat labels;
     cv::Mat stats;
@@ -255,7 +256,7 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
 
     cv::imshow("Centroids", centroids_img);
     cv::imshow("live", frame_debug);
-    cv::waitKey(0);
+    //cv::waitKey(0);
 
     // TODO end test
 
