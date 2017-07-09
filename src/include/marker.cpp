@@ -181,11 +181,83 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     ///=== STEP 6 ===
     //===detect corners of the boundaries with harris corner (WARNING both images has 1px of padding respect the original one )
     cv::Mat img_corners = cv::Mat::zeros(boundaries_img.rows, boundaries_img.cols, CV_32FC1); // float values
-    int block_size = 11;//11;//Good 7
+    // FIXME continue from here
+    // TODO decide how create corner in boundaries,
+    // TODO maybe good idea fill boundaries?? attention if wrong boundary contains markers!!!
+    // TODO try to remove gaussian blur ( but maybe can help to remove noise )
+    /*int block_size = 11;//11;//Good 7
     int kernel_size = 7;//7;// Good 5
     float free_parameter = 0.05f; // more little more corners will be found
-    cv::cornerHarris(boundaries_img, img_corners, block_size, kernel_size, free_parameter,
+    cv::cornerHarris(boundaries_img, img_corners, block_size, kernel_size, free_parameter, cv::BorderTypes::BORDER_DEFAULT);*/
+    int block_size = 7;//11;//Good 7
+    int kernel_size = 5;//7;// Good 5
+    float free_parameter = 0.05f;
+    cv::cornerHarris(unblured_frame_th, img_corners, block_size, kernel_size, free_parameter,
                      cv::BorderTypes::BORDER_DEFAULT);
+
+    cv::Mat corners_th = cv::Mat::zeros(img_corners.rows, img_corners.cols, CV_8UC1);
+
+    for(int y = 0; y < img_corners.rows; ++y ){
+
+        for(int x = 0; x < img_corners.cols; ++x ){
+            float f = img_corners.at<float>(y,x);
+            if( f > 0.2f) corners_th.at<uchar>(y,x) = 255;
+        }
+    }
+
+
+
+
+    //img_corners.convertTo(corners_th, CV_8UC1);
+    cv::imshow("Conversion", corners_th);
+    cv::waitKey(0);
+
+    cv::Mat labels;
+    cv::Mat stats;
+    cv::Mat centroids;
+    cv::connectedComponentsWithStats(corners_th,labels,stats, centroids);
+    cout << "centroids: " << centroids.rows << ", " << centroids.cols << endl;
+
+    centroids.convertTo(centroids, CV_32F); // TODO is correct detection ( yes improve!!!) Try to negative of the gray scale image maybe improve
+    const cv::TermCriteria criteria = cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 100, 0.001);
+    cv::cornerSubPix(unblured_frame_th,centroids,cv::Size(5,5),cv::Size(-1,-1),criteria);
+
+    cv::Mat centroids_img = cv::Mat::zeros(img_corners.rows, img_corners.cols, CV_8UC1); // Img
+    for(int y = 0; y < centroids.rows; ++y ){
+        const float* c = centroids.ptr<float>(y); // FIXme double or float??
+        centroids_img.at<uchar>((int)c[1],(int)c[0]) = 255;
+
+
+        int offset = 1; // Used to make corners visible ( bigger than a pixel )
+        int j_origin = (int)c[0];
+        int i_origin = (int)c[1];
+
+        // Remove all color from blue and green channel and add full color to green channel
+        // Corners are drawn with "offset" has extra size to make them more visible
+        for (int i = i_origin-offset; i<=i_origin+offset; ++i) {
+            if (i >= 0 && i < frame_debug.rows) {
+                for (int j = j_origin - offset; j <= j_origin + offset; ++j) {
+                    if (j >= 0 && j < frame_debug.cols) {
+                        cv::Vec3b &intensity = frame_debug.at<cv::Vec3b>(i, j);
+
+                        intensity[0] = 255;
+                        intensity[1] = 0;
+                        intensity[2] = 0;
+                    }
+                }
+            }
+        }
+
+
+    }
+
+
+
+    cv::imshow("Centroids", centroids_img);
+    cv::imshow("live", frame_debug);
+    cv::waitKey(0);
+
+    // TODO end test
 
     ///=== STEP 7 ===
     //search corners in img_corners

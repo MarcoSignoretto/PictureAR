@@ -330,7 +330,7 @@ void boundary_extractor::draw_boundaries_corners(cv::Mat& image){
     assert(image.channels() == 3 && "Invalid channel number");
 
     for(boundary& b : boundaries_){
-        draw_corners(image, b); // draw red line into image respect to boundary pixels
+        draw_corners(image, b); // draw green dot into image respect to boundary pixels
     }
 }
 
