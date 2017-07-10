@@ -432,6 +432,19 @@ void boundary_extractor::corners_to_matrix(cv::Mat& corner_matrix){
     internal_corners_to_matrix(corner_matrix, all_corners);
 }
 
+void boundary_extractor::matrix_to_corners(const cv::Mat &corner_matrix){
+    int y = 0;
+    const float* p;
+    for(boundary& b : boundaries_){
+        for(cv::Vec2i& v : b.corners){
+            p = corner_matrix.ptr<float>(y);
+            v[0] = (int)p[0];
+            v[1] = (int)p[1];
+            ++y;
+        }
+    }
+}
+
 inline void boundary_extractor::normalize() {
     // Normalize all points removing padding offset
     for(boundary& b : boundaries_){

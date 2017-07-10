@@ -96,6 +96,8 @@ namespace mcv{
         // TODO add docs
         void corners_to_matrix(cv::Mat& corner_matrix);
 
+        void matrix_to_corners(const cv::Mat& corner_matrix);
+
         /**
          * This function returns all boundaries which haven't been throw away
          * @return boundaries
@@ -189,6 +191,7 @@ namespace mcv{
          */
         inline void normalize();
 
+        // TODO comment
         inline void internal_corners_to_matrix(cv::Mat& corner_matrix, std::vector<cv::Vec2i>& all_corners);
     };
 

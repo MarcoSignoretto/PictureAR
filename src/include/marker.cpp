@@ -274,6 +274,7 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
 
     const cv::TermCriteria criteria_new = cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 100, 0.001);
     cv::cornerSubPix(unblured_frame_th,corner_matrix,cv::Size(5,5),cv::Size(-1,-1),criteria_new);
+    //be.matrix_to_corners(corner_matrix);
 
     cout << corner_matrix << endl;
 
