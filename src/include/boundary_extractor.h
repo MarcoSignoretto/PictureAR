@@ -93,6 +93,9 @@ namespace mcv{
          */
         void compute_corners(cv::Mat& img_corners);
 
+        // TODO add docs
+        void corners_to_matrix(cv::Mat& corner_matrix);
+
         /**
          * This function returns all boundaries which haven't been throw away
          * @return boundaries
@@ -185,6 +188,8 @@ namespace mcv{
          * This function remove offset of padding image for all boundary points of each boundary
          */
         inline void normalize();
+
+        inline void internal_corners_to_matrix(cv::Mat& corner_matrix, std::vector<cv::Vec2i>& all_corners);
     };
 
 }

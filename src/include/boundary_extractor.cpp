@@ -422,6 +422,16 @@ void boundary_extractor::compute_corners(cv::Mat& img_corners){
     }
 }
 
+void boundary_extractor::corners_to_matrix(cv::Mat& corner_matrix){
+    std::vector<cv::Vec2i> all_corners;
+    for(boundary& b : boundaries_){
+        for(cv::Vec2i& v : b.corners){
+            all_corners.push_back(v);
+        }
+    }
+    internal_corners_to_matrix(corner_matrix, all_corners);
+}
+
 inline void boundary_extractor::normalize() {
     // Normalize all points removing padding offset
     for(boundary& b : boundaries_){
@@ -429,6 +439,15 @@ inline void boundary_extractor::normalize() {
             v[0] = v[0]-1;
             v[1] = v[1]-1;
         }
+    }
+}
+
+void boundary_extractor::internal_corners_to_matrix(cv::Mat &corner_matrix, std::vector<cv::Vec2i> &all_corners) {
+    corner_matrix = cv::Mat((int)all_corners.size(),2,CV_32FC1);
+    for(int y = 0; y < corner_matrix.rows; ++y ){
+        float* p = corner_matrix.ptr<float>(y);
+        p[0] = (float)all_corners[y][0] ;
+        p[1] = (float)all_corners[y][1] ;
     }
 }
 

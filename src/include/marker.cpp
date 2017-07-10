@@ -218,10 +218,12 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     cv::Mat centroids;
     cv::connectedComponentsWithStats(corners_th,labels,stats, centroids);
     cout << "centroids: " << centroids.rows << ", " << centroids.cols << endl;
+    cout << centroids << endl;
 
-    centroids.convertTo(centroids, CV_32F); // TODO is correct detection ( yes improve!!!) Try to negative of the gray scale image maybe improve
+    /*centroids.convertTo(centroids, CV_32F); // TODO is correct detection ( yes improve!!!) Try to negative of the gray scale image maybe improve
     const cv::TermCriteria criteria = cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 100, 0.001);
     cv::cornerSubPix(unblured_frame_th,centroids,cv::Size(5,5),cv::Size(-1,-1),criteria);
+
 
     cv::Mat centroids_img = cv::Mat::zeros(img_corners.rows, img_corners.cols, CV_8UC1); // Img
     for(int y = 0; y < centroids.rows; ++y ){
@@ -250,13 +252,11 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
         }
 
 
-    }
+    }*/
 
 
 
-    cv::imshow("Centroids", centroids_img);
-    cv::imshow("live", frame_debug);
-    //cv::waitKey(0);
+
 
     // TODO end test
 
@@ -265,6 +265,52 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     be.compute_corners(img_corners);
     ///=== STEP 8 ===
     be.keep_between_corners(4, 4);
+
+
+    // TODO new test
+    cv::Mat corner_matrix;
+    be.corners_to_matrix(corner_matrix);
+    cout << corner_matrix << endl;
+
+    const cv::TermCriteria criteria_new = cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 100, 0.001);
+    cv::cornerSubPix(unblured_frame_th,corner_matrix,cv::Size(5,5),cv::Size(-1,-1),criteria_new);
+
+    cout << corner_matrix << endl;
+
+    cv::Mat centroids_img = cv::Mat::zeros(img_corners.rows, img_corners.cols, CV_8UC1); // Img
+    for(int y = 0; y < corner_matrix.rows; ++y ){
+        const float* c = corner_matrix.ptr<float>(y); // FIXme double or float??
+        centroids_img.at<uchar>((int)c[1],(int)c[0]) = 255;
+
+
+        int offset = 1; // Used to make corners visible ( bigger than a pixel )
+        int j_origin = (int)c[0];
+        int i_origin = (int)c[1];
+
+        // Remove all color from blue and green channel and add full color to green channel
+        // Corners are drawn with "offset" has extra size to make them more visible
+        for (int i = i_origin-offset; i<=i_origin+offset; ++i) {
+            if (i >= 0 && i < frame_debug.rows) {
+                for (int j = j_origin - offset; j <= j_origin + offset; ++j) {
+                    if (j >= 0 && j < frame_debug.cols) {
+                        cv::Vec3b &intensity = frame_debug.at<cv::Vec3b>(i, j);
+
+                        intensity[0] = 255;
+                        intensity[1] = 0;
+                        intensity[2] = 0;
+                    }
+                }
+            }
+        }
+
+
+    }
+
+    cv::imshow("Centroids", centroids_img);
+    cv::imshow("live", frame_debug);
+    //cv::waitKey(0);
+
+    // TODo end new test
 
     //========== HOMOGRAPHY =============
     // All homography operation are applied into unblured image
