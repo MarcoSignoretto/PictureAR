@@ -213,14 +213,14 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     cv::imshow("Conversion", corners_th);
     //cv::waitKey(0);
 
-    cv::Mat labels;
+    /*cv::Mat labels;
     cv::Mat stats;
     cv::Mat centroids;
     cv::connectedComponentsWithStats(corners_th,labels,stats, centroids);
     cout << "centroids: " << centroids.rows << ", " << centroids.cols << endl;
     cout << centroids << endl;
 
-    /*centroids.convertTo(centroids, CV_32F); // TODO is correct detection ( yes improve!!!) Try to negative of the gray scale image maybe improve
+    centroids.convertTo(centroids, CV_32F); // TODO is correct detection ( yes improve!!!) Try to negative of the gray scale image maybe improve
     const cv::TermCriteria criteria = cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 100, 0.001);
     cv::cornerSubPix(unblured_frame_th,centroids,cv::Size(5,5),cv::Size(-1,-1),criteria);
 
