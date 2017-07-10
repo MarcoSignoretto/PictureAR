@@ -150,6 +150,7 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     cv::cvtColor(camera_frame, unblured_grayscale, CV_RGB2GRAY);
 
     ///=== STEP 1 ===
+    // TODO decide what doing with bluring
     int sigma = 1; // TODO unusefull bluring ( consider if remove )
     int ksize = 3;
     cv::GaussianBlur(unblured_grayscale, grayscale, cv::Size(ksize,ksize), sigma);
@@ -170,7 +171,7 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
 
     ///=== STEP 3 ===
     // Boundary extraction
-    mcv::boundary_extractor be(frame_th, false);
+    mcv::boundary_extractor be(unblured_frame_th, false);
     be.find_boundaries(mcv::BLACK);
 
     ///=== STEP 4 ===
