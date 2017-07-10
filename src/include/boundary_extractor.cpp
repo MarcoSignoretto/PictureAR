@@ -380,18 +380,24 @@ inline void boundary_extractor::draw_boundary(cv::Mat& image, const boundary &b,
     assert((image.channels() == 1 || image.channels() == 3) && "Invalid channel number");
     if(image.channels()==1) {
         for (cv::Vec2i v : b.points) {
-            int j = v[0] + padding_offeset;// +padding_offeset is in order to add padding in image
-            int i = v[1] + padding_offeset;
-            image.at<uchar>(i, j) = 255;
+            int x = v[0] + padding_offeset;// +padding_offeset is in order to add padding in image
+            int y = v[1] + padding_offeset;
+            if(x >= 0 && y>=0 && x < image.cols && y < image.rows ) {
+                image.at<uchar>(y, x) = 255;
+            }
         }
     }else{
         for (cv::Vec2i v : b.points) {
-            int j = v[0] + padding_offeset;// +padding_offeset is in order to add padding in image
-            int i = v[1] + padding_offeset;
-            cv::Vec3b &intensity = image.at<cv::Vec3b>(i, j);
-            intensity[0] = 0;
-            intensity[1] = 0;
-            intensity[2] = 255;
+
+            int x = v[0] + padding_offeset;// +padding_offeset is in order to add padding in image
+            int y = v[1] + padding_offeset;
+            if(x >= 0 && y>=0 && x < image.cols && y < image.rows ){
+                cv::Vec3b &intensity = image.at<cv::Vec3b>(y, x);
+                intensity[0] = 0;
+                intensity[1] = 0;
+                intensity[2] = 255;
+            }
+
         }
     }
 }
