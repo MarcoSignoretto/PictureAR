@@ -13,14 +13,14 @@ void mcv::boundary::print(){
 
 void mcv::boundary::compute_corners(cv::Mat& img_corners){
     const float CORNER_THRESHOLD = 2.0f;
-    int kernel_size = 3; // Allow better corner recognition
+    int kernel_size = 0; // kernel_size greater than zero was used to improve corners before cornerSubPix optimization
     bool on_corner = false;
     cv::Vec2i* corner = nullptr;
     float corner_intensity = 0.0f; // Intensity of the corners
     for(int i = 0; i < points.size(); ++i) {
         cv::Vec2i &point = points[i];
 
-        // Calculate intensity based on neighbourhood TODO try to weight different respect to center
+        // Calculate intensity based on neighbourhood
         float current_intensity = 0.0f;
         const float *p;
         for(int y = point[1]+1-kernel_size; y <= point[1]+1+kernel_size; ++y) { // Added 1px because img_corners is an image with padding

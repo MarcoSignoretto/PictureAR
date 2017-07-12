@@ -93,9 +93,21 @@ namespace mcv{
          */
         void compute_corners(cv::Mat& img_corners);
 
-        // TODO add docs
+        /**
+         * This function convert internal boundaries corners representation in cv::Mat format and store this result in
+         * the "corner_matrix" (WARNING corners are stored in order of boundaries)
+         * between this function and "matrix_to_corners" function no boundaries filters can be applied
+         * @param corner_matrix: matrix where corners will be saved
+         * @see matrix_to_corners
+         */
         void corners_to_matrix(cv::Mat& corner_matrix);
 
+        /**
+         * This function perform the inverse operation respect to "corners_to_matrix" function and update boundaries corners
+         * between "corners_to_matrix" function and this function no boundaries filters can be applied
+         * @param corner_matrix: improved corner matrix which will be used to update boundaries corners
+         * @see corners_to_matrix
+         */
         void matrix_to_corners(const cv::Mat& corner_matrix);
 
         /**
@@ -191,8 +203,13 @@ namespace mcv{
          */
         inline void normalize();
 
-        // TODO comment
-        inline void internal_corners_to_matrix(cv::Mat& corner_matrix, std::vector<cv::Vec2i>& all_corners);
+        /**
+         * This function perform the raw operation of conversion between boundaries corners and cv::Mat and init the
+         * destination matrix "corner_matrix"
+         * @param corner_matrix: matrix where results are stored
+         * @param all_corners: vector of pointers where all corners of all boundaries have been putted together
+         */
+        inline void internal_corners_to_matrix(cv::Mat& corner_matrix, std::vector<cv::Vec2i*>& all_corners);
     };
 
 }

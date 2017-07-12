@@ -55,7 +55,7 @@ int mcv::marker::detect_orientation(const cv::Mat& warped_image) {
     return res;
 }
 
-void mcv::marker::calculate_rotation_matrix(cv::Mat& rotation_matrix, int rotation_degree, const bool rotation_update) {
+void mcv::marker::calculate_rotation_matrix(cv::Mat& rotation_matrix, int rotation_degree, const bool rotation_update){
     float radiants = 0.0f;
     float offset_x = 0.0f;
     float offset_y = 0.0f;
@@ -141,6 +141,7 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     cv::Mat frame_th;
     cv::Mat unblured_frame_th;
     cv::Mat boundaries_img; // 1px larger than camera_frame
+    cv::Mat corner_matrix; // matrix which represents all corners survived to filtering
 
     int threshold;
     int max_value;
@@ -194,14 +195,11 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     ///=== STEP 8 ===
     be.keep_between_corners(4, 4);
 
-
-    // TODO new test  ( Add as a step )
-    cv::Mat corner_matrix;
+    ///=== STEP 9 ===
     be.corners_to_matrix(corner_matrix);
-    const cv::TermCriteria criteria_new = cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 100, 0.001);
-    cv::cornerSubPix(unblured_frame_th,corner_matrix,cv::Size(5,5),cv::Size(-1,-1),criteria_new);
+    const cv::TermCriteria criteria = cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 100, 0.001);
+    cv::cornerSubPix(unblured_frame_th,corner_matrix,cv::Size(5,5),cv::Size(-1,-1),criteria);
     be.matrix_to_corners(corner_matrix);
-    // TODo end new test
 
     //========== HOMOGRAPHY =============
     // All homography operation are applied into unblured image
@@ -213,7 +211,7 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
 
 
 
-        ///=== STEP 9 ===
+        ///=== STEP 10 ===
         // find Homography
         std::vector<cv::Vec2d> corners;
         for (cv::Vec2i &corner : boundary.corners) {
@@ -222,23 +220,23 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
         cv::Mat H = cv::findHomography(corners, mcv::marker::DST_POINTS);
         //cv::warpPerspective(frame_th, warped_img, H.inv(), cv::Size(256, 256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
         cv::warpPerspective(unblured_frame_th, warped_img, H.inv(), cv::Size(256, 256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
-        ///=== STEP 10 ===
+        ///=== STEP 11 ===
         // Detect orientation
         int orientation = mcv::marker::detect_orientation(warped_img);
 
-        ///=== STEP 11 ===
+        ///=== STEP 12 ===
         // Calculate rotation matrixes ( and create it )
         mcv::marker::calculate_rotation_matrix(rotation_matrix, orientation);
         cv::warpPerspective(warped_img, warped_img, rotation_matrix.inv(), cv::Size(256, 256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
 
-        ///=== STEP 12 ===
+        ///=== STEP 13 ===
         // ============ MATCHING
         float match_0m = mcv::marker::compute_matching(img_0m_th, warped_img);
         float match_1m = mcv::marker::compute_matching(img_1m_th, warped_img);
 
 
         // Project placeholder with higher probability in original image if match above certain threshold
-        ///=== STEP 13 ===
+        ///=== STEP 14 ===
         if (match_0m > MATCH_THRESHOLD || match_1m > MATCH_THRESHOLD) {
 
             const cv::Mat &matched_image = (match_0m > match_1m) ? img_0p : img_1p;

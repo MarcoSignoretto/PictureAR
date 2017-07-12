@@ -117,12 +117,13 @@ namespace mcv{
          * 6) Apply harris corner into the above image
          * 7) Compute which pixels of the boundaries are corners
          * 8) Keep only boundaries which have 4 corners
+         * 9) Improve boundaries corners of the remaining boundaries with cornerSubPix
          * For each boundary:
-         * 9) find homography and warp image into a 256x256 image ( from unblured_grayscale )
-         * 10) detect marker orientation ( in this step also other candidate marker has been rotate because final filtering is applied during matching phase )
-         * 11) calculate rotation for placeholder and warp into 256x256 image to perform matching
-         * 12) compute matching coefficient
-         * 13) warp placeholder with higher probability into original image if matching is above MATCH_THRESHOLD
+         * 10) find homography and warp image into a 256x256 image ( from unblured_grayscale )
+         * 11) detect marker orientation ( in this step also other candidate marker has been rotate because final filtering is applied during matching phase )
+         * 12) calculate rotation for placeholder and warp into 256x256 image to perform matching
+         * 13) compute matching coefficient
+         * 14) warp placeholder with higher probability into original image if matching is above MATCH_THRESHOLD
          *
          * @param img_0p: image placeholder 0 ( leo picture )
          * @param img_1p: image placeholder 1 ( van picture )

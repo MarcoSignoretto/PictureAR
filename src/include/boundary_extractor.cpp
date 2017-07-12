@@ -282,7 +282,6 @@ inline int boundary_extractor::find_clock_index(cv::Vec2i* c_ptr, cv::Vec2i* b_p
     return index;
 }
 
-// TODO refactor call functio below
 void boundary_extractor::draw_boundaries(const std::string &dest) {
     cv::Mat fin_img;
     // read original image in grayscale
@@ -429,12 +428,14 @@ void boundary_extractor::compute_corners(cv::Mat& img_corners){
 }
 
 void boundary_extractor::corners_to_matrix(cv::Mat& corner_matrix){
-    std::vector<cv::Vec2i> all_corners;
+    // Create a vector of pointers to corners ( pointers have been used to avoid multiple copies )
+    std::vector<cv::Vec2i*> all_corners;
     for(boundary& b : boundaries_){
         for(cv::Vec2i& v : b.corners){
-            all_corners.push_back(v);
+            all_corners.push_back(&v);
         }
     }
+    // Now all_corners contains all corners of all boundaries so convert into matrix
     internal_corners_to_matrix(corner_matrix, all_corners);
 }
 
@@ -444,8 +445,9 @@ void boundary_extractor::matrix_to_corners(const cv::Mat &corner_matrix){
     for(boundary& b : boundaries_){
         for(cv::Vec2i& v : b.corners){
             p = corner_matrix.ptr<float>(y);
-            v[0] = (int)p[0];
-            v[1] = (int)p[1];
+            // Use round to obtain better corners respect to troncate
+            v[0] = (int)roundf(p[0]);
+            v[1] = (int)roundf(p[1]);
             ++y;
         }
     }
@@ -461,12 +463,13 @@ inline void boundary_extractor::normalize() {
     }
 }
 
-void boundary_extractor::internal_corners_to_matrix(cv::Mat &corner_matrix, std::vector<cv::Vec2i> &all_corners) {
+void boundary_extractor::internal_corners_to_matrix(cv::Mat &corner_matrix, std::vector<cv::Vec2i*> &all_corners) {
     corner_matrix = cv::Mat((int)all_corners.size(),2,CV_32FC1);
     for(int y = 0; y < corner_matrix.rows; ++y ){
         float* p = corner_matrix.ptr<float>(y);
-        p[0] = (float)all_corners[y][0] ;
-        p[1] = (float)all_corners[y][1] ;
+        // Copy boundaries corners value into matrix
+        p[0] = (float)(*(all_corners[y]))[0] ;
+        p[1] = (float)(*(all_corners[y]))[1] ;
     }
 }
 
