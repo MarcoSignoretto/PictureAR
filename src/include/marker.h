@@ -108,8 +108,7 @@ namespace mcv{
 
         /**
          * This function execute the pipeline to apply AR to the original image "camera_frame", the pipeline is the following:
-         * 0) Convert original frame into grayscale
-         * 1) Apply GaussianBlur to remove noise
+         * 1) Convert original frame into grayscale
          * 2) Apply Otzu threshold to grayscale image
          * 3) Extract image boundaries
          * 4) Filter the above boundaries with length between BOUNDARY_MIN_LENGTH and BOUNDARY_MAX_LENGTH
@@ -124,6 +123,9 @@ namespace mcv{
          * 12) calculate rotation for placeholder and warp into 256x256 image to perform matching
          * 13) compute matching coefficient
          * 14) warp placeholder with higher probability into original image if matching is above MATCH_THRESHOLD
+         *
+         * A Gaussian bluring has been applied during test phase but this filter doesn't improve quality of recognition
+         * so it has been throw away
          *
          * @param img_0p: image placeholder 0 ( leo picture )
          * @param img_1p: image placeholder 1 ( van picture )

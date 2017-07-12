@@ -137,25 +137,13 @@ float mcv::marker::compute_matching(const cv::Mat &marker_extracted, const cv::M
 void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const cv::Mat& img_0m_th, const cv::Mat& img_1m_th, cv::Mat& camera_frame, bool debug_info) {
     cv::Mat frame_debug;
     cv::Mat grayscale;
-    cv::Mat unblured_grayscale;
     cv::Mat frame_th;
-    cv::Mat unblured_frame_th;
     cv::Mat boundaries_img; // 1px larger than camera_frame
     cv::Mat corner_matrix; // matrix which represents all corners survived to filtering
 
-    int threshold;
-    int max_value;
-
-    ///=== STEP 0 ===
-    // Convert original image into gray scale image
-    cv::cvtColor(camera_frame, unblured_grayscale, CV_RGB2GRAY);
-
     ///=== STEP 1 ===
-    // TODO decide what doing with bluring
-    int sigma = 1; // TODO unusefull bluring ( consider if remove )
-    int ksize = 3;
-    cv::GaussianBlur(unblured_grayscale, grayscale, cv::Size(ksize,ksize), sigma);
-    //grayscale = unblured_grayscale.clone();
+    // Convert original image into gray scale image
+    cv::cvtColor(camera_frame, grayscale, CV_RGB2GRAY);
 
     if(debug_info) {
         frame_debug = camera_frame.clone();
@@ -163,16 +151,11 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
 
     ///=== STEP 2 ===
     //Calculate threshold image from the gray scale
-    cv::Mat hist_ = mcv::compute_hist(grayscale, max_value);
-    cv::Mat normHist = mcv::normalize_hist(hist_, grayscale);
-    threshold = mcv::compute_Otsu_thresholding(normHist);
-    frame_th = mcv::image_threshold(threshold, grayscale);
-    // Unblured thresholded image ( use same threshold of the previous one )
-    unblured_frame_th = mcv::image_threshold(threshold, unblured_grayscale);
+    mcv::image_otsu_thresholding(grayscale, frame_th);
 
     ///=== STEP 3 ===
     // Boundary extraction
-    mcv::boundary_extractor be(unblured_frame_th, false);
+    mcv::boundary_extractor be(frame_th, false);
     be.find_boundaries(mcv::BLACK);
 
     ///=== STEP 4 ===
@@ -184,8 +167,8 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     ///=== STEP 6 ===
     //===detect corners of the boundaries with harris corner (WARNING both images has 1px of padding respect the original one )
     cv::Mat img_corners = cv::Mat::zeros(boundaries_img.rows, boundaries_img.cols, CV_32FC1); // float values
-    int block_size = 11;//11;//Good 7
-    int kernel_size = 7;//7;// Good 5
+    int block_size = 11;
+    int kernel_size = 7;
     float free_parameter = 0.05f; // more little more corners will be found
     cv::cornerHarris(boundaries_img, img_corners, block_size, kernel_size, free_parameter, cv::BorderTypes::BORDER_DEFAULT);
 
@@ -198,12 +181,13 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     ///=== STEP 9 ===
     be.corners_to_matrix(corner_matrix);
     const cv::TermCriteria criteria = cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 100, 0.001);
-    cv::cornerSubPix(unblured_frame_th,corner_matrix,cv::Size(5,5),cv::Size(-1,-1),criteria);
+    // cornerSubPix optimization is based on original thresholded image
+    cv::cornerSubPix(frame_th,corner_matrix,cv::Size(5,5),cv::Size(-1,-1),criteria);
     be.matrix_to_corners(corner_matrix);
 
     //========== HOMOGRAPHY =============
     // All homography operation are applied into unblured image
-    // warp has benn computed in inverse_map configuration to avoid white hole.
+    // warp has been computed in inverse_map configuration to avoid white hole.
     std::vector<mcv::boundary> &boundaries = be.get_boundaries();
     for (mcv::boundary &boundary : boundaries) {
         cv::Mat warped_img;
@@ -218,8 +202,7 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
             corners.push_back(cv::Vec2d(corner[0], corner[1]));
         }
         cv::Mat H = cv::findHomography(corners, mcv::marker::DST_POINTS);
-        //cv::warpPerspective(frame_th, warped_img, H.inv(), cv::Size(256, 256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
-        cv::warpPerspective(unblured_frame_th, warped_img, H.inv(), cv::Size(256, 256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
+        cv::warpPerspective(frame_th, warped_img, H.inv(), cv::Size(256, 256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
         ///=== STEP 11 ===
         // Detect orientation
         int orientation = mcv::marker::detect_orientation(warped_img);
@@ -256,12 +239,11 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
 
     }
 
-    // Shows debug images with filter thresholded and feature
+    // Shows debug images with features
     if (debug_info) {
         be.draw_boundaries(frame_debug);
         be.draw_boundaries_corners(frame_debug);
 
-        cv::imshow("filtered_image", grayscale);
         cv::imshow("thresholded", frame_th);
         cv::imshow("corners", img_corners);
         cv::imshow("live", frame_debug);
