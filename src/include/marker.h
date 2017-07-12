@@ -59,11 +59,6 @@ namespace mcv{
                 cv::Point(OFFSET+HEIGHT, 256-OFFSET)
         };
 
-        const std::vector< cv::Point > RECT_MATCHING = {
-                cv::Point(OFFSET+10, 256-(OFFSET+HEIGHT)),
-                cv::Point(256-OFFSET-80, 256-OFFSET)
-        };
-
         const std::vector<cv::Vec2d> DST_POINTS = {
                 cv::Vec2d(0, 0),
                 cv::Vec2d(256, 0),
