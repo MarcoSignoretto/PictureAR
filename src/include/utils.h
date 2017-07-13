@@ -18,14 +18,14 @@ namespace mcv{
      * Normalize histogram of image
      * @param hist
      * @param image
-     * @return a Mat object that represent the normalized histogram of an image
+     * @return a Mat object which represents the normalized histogram of an image
      */
     cv::Mat normalize_hist(cv::Mat &hist, const cv::Mat &image);
 
     /**
-     * Function that given an histogram plot hist figure on 256x256 imaged with name specified into filename
+     * Function that given an histogram "hist", it plots an histogram figure on 256x256 image with name specified into filename
      * In order to have a good representation height are proportional to max value into the histogram
-     * (max value into the histogram has all pixel black, other values has a proportional amount of pixels filled )
+     * (max value into the histogram has all pixels black, other values have a proportional amount of pixels filled )
      * @param hist: non normalized histogram
      * @param max_value: max value reach on hist ( passed as param for performance reason )
      * @param filename: name of the histogram image
@@ -72,7 +72,7 @@ namespace mcv{
     float between_class_variance(int threshold, const cv::Mat& cum_sum, const cv::Mat& cum_mean);
 
     /**
-     * Search best value for thresholding using Otsu tecnique and return it
+     * Search best value for thresholding using Otsu tecnique and returns this value
      * @param norm_hist: normalized histogram
      * @return best threshold for Otsu tecnique
      */
@@ -81,7 +81,7 @@ namespace mcv{
     /**
      * Generate new image obtained from thresholding operation.
      * @param threshold: param the separate black and white values
-     * @param image_gray: image were apply thresholding
+     * @param image_gray: image were applied thresholding
      * @return
      */
     cv::Mat image_threshold(int threshold, const cv::Mat &image_gray);
@@ -146,7 +146,7 @@ namespace mcv{
     cv::Mat to_image(cv::Mat& rho_theta_plane);
 
     /**
-     * This function wrap rectangle function of openCV
+     * This function wraps rectangle function of openCV
      * @param dst: colored image where write
      * @param rect: rectangle to write
      */
