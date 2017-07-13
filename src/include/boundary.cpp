@@ -27,22 +27,22 @@ void mcv::boundary::compute_corners(cv::Mat& img_corners){
             if (y >= 0 && y < img_corners.rows) { // Bound checking
                 p = img_corners.ptr<float>(y);
                 for (int x = point[0] + 1 - kernel_size; x <= point[0] + 1 + kernel_size; ++x) {
-                    if (x >= 0 && x < img_corners.cols) { // Bound checking for neighbour tecnique
+                    if (x >= 0 && x < img_corners.cols) { // Bound checking for neighbour technique
                         current_intensity += p[x];
                     }
                 }
             }
         }
 
-        // Check if point is a corner or not
+        // Check if the current point is a corner or not
         if(current_intensity > CORNER_THRESHOLD){
             if(!on_corner){
                 on_corner = true;
             }
-            // Already on corner but if greater intensity update corner
+            // pixel already on the corner but if the current intensity is greater respect to the previous one, update corner
             if(current_intensity>corner_intensity){
                 corner_intensity = current_intensity;
-                corner = &point; // Use reference to point so no normalization problem
+                corner = &point; // Use reference to point to avoid normalization problem
             }
         }else{
             if(on_corner){

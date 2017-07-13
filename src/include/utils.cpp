@@ -7,7 +7,7 @@
 #include "utils.h"
 
 cv::Mat mcv::normalize_hist(cv::Mat &hist, const cv::Mat &image){
-    //we use float data into normalized histogram because as necessary precision and use less memory than double
+    //we use float data into normalized histogram because as necessary precision and it uses less memory than double
     float pixels = image.rows*image.cols;
     cv::Mat norm_hist = cv::Mat::zeros(1,hist.cols, CV_32FC1); // Create 0 matrix 1 channel and float data
 
@@ -26,9 +26,9 @@ cv::Mat mcv::generate_hist_image(const cv::Mat &hist, int max_value, string file
     cv::Mat hist_image = cv::Mat::zeros(256, 256, CV_8UC1);  //  Init all black
     for(int i = 0; i < hist.cols; ++i){
         int height = (int)round((float)hist.at<int>(0,i) * (256.0f / (float)max_value)); // truncate to display
-        // initially image is complete black, then using fact that (0,0) is at "top, left" I fill with white pixels
-        // part of the image that are over the height of the histogram ( this procedure are repeated for each value of
-        // the intensity represent into histogram
+        // initially image is completely black, then using fact that (0,0) is at "top, left" I fill with white pixels
+        // part of the image that is over the height of the histogram ( this procedure is repeated for each value of
+        // the intensity represented into histogram
         for(int j = hist_image.rows-1-height; j >= 0; --j){
             hist_image.at<uchar>(j,i) = 255;  //make white pixel over height value
         }
@@ -39,7 +39,7 @@ cv::Mat mcv::generate_hist_image(const cv::Mat &hist, int max_value, string file
 
 cv::Mat mcv::compute_hist(const cv::Mat& image_gray, int& max_value){
     max_value = 0;
-    // use 32 bit to store image (worst case 307200 so 16-bit is not sufficient)
+    // use 32 bits to store image (worst case 307200 so 16-bit is not sufficient)
     cv::Mat hist = cv::Mat::zeros(1, 256, CV_32SC1);
 
     int nRows = image_gray.rows;
@@ -47,11 +47,11 @@ cv::Mat mcv::compute_hist(const cv::Mat& image_gray, int& max_value){
 
     const uchar* p;
     for(int i = 0; i < nRows; ++i) {
-        // Iterate on image with pointer of row, this method is less efficient that all pointer iteration but works
+        // Iterate on image with pointer of row, this method is less efficient that all pointer iteration but it works
         // also for non continuous images
         p = image_gray.ptr<uchar>(i);
         for (int j = 0; j < nCols; ++j) {
-            // get intensity of pixel at i,j position and use his value as index for increase frequency of histogram
+            // get intensity of pixel at i,j position and use its value as index to increase frequency of histogram
             // for that intensity
             int j_index = (int)(p[j]);
             int& hist_value = hist.at<int>(0, j_index);
@@ -121,7 +121,7 @@ int mcv::compute_Otsu_thresholding(cv::Mat &norm_hist){
     const cv::Mat cum_sum = mcv::compute_CDF(norm_hist);
     // evaluate cumulative mean
     const cv::Mat cum_mean = mcv::compute_cumulative_mean(norm_hist);
-    // try all possible thresholding and keep the best ( maximize between variance )
+    // try all possible thresholding and keep the best one ( maximize between variance )
     for(int i = 0; i < norm_hist.cols; ++i){
         float betweenVariance = mcv::between_class_variance(i, cum_sum, cum_mean);
         if (betweenVariance > max ){
@@ -161,7 +161,7 @@ void mcv::image_otsu_thresholding(const cv::Mat &image_gray, cv::Mat& image_th) 
 
 void mcv::compute_rho_theta_plane(const cv::Mat &window_mat, cv::Mat& H, cv::Point2f& best_rho_theta) {
     int max_value = -1;
-    int theta_max = 180; // 180 degree if range of theta
+    int theta_max = 180; // 180 degree of range of theta
     const double step = CV_PI / 180; // step of 1 degree
 
     // rho max is given by length of diagonal of the window_mat
@@ -174,17 +174,17 @@ void mcv::compute_rho_theta_plane(const cv::Mat &window_mat, cv::Mat& H, cv::Poi
     // Iterate over window
     int y,x;
     for( y = 0; y < nRows; ++y) {
-        // Iterate on image with pointer of row, this method is less efficient that all pointer iteration but works
+        // Iterate on image with pointer of row, this method is less efficient that all pointer iteration but it works
         // also for non continuous images
         const uchar* p = window_mat.ptr<uchar>(y);
 
         for ( x = 0; x < nCols; ++x) {
-            // black is all zero, if use otsu thresholding white is 1 so use greater than zero in order to work also
+            // black is all zero, if use otsu thresholding white is 1 so it uses greater than zero in order to work also
             // with my implementation
             if(p[x] > mcv::BLACK){
                 // iteration on theta range
                 for(float theta=0.0; theta < CV_PI; theta += step){
-                    // add rho max, now center is in the middle
+                    // add rho max, now the center is in the middle
                     int discrete_r = rho_max + (int)round((float)x * cos(theta) + (float)y * sin(theta));
 
                     // in degree ( same operation of to_degree with the given step )
@@ -220,7 +220,7 @@ void mcv::extract_lines(const cv::Mat &window_mat, cv::Mat& H, std::vector<cv::P
     // Iterate over window
     int y,x;
     for( y = 0; y < nRows; ++y) {
-        // Iterate on image with pointer of row, this method is less efficient that all pointer iteration but works
+        // Iterate on image with pointer of row, this method is less efficient that all pointer iteration but it works
         // also for non continuous images
         const uchar* p = window_mat.ptr<uchar>(y);
 
@@ -281,13 +281,13 @@ cv::Mat mcv::to_image(cv::Mat &rho_theta_plane) {
     int nCols = rho_theta_plane.cols;
     int x,y;
     for(y = 0; y < nRows; ++y) {
-        // Iterate on image with pointer of row, this method is less efficient that all pointer iteration but works
+        // Iterate on image with pointer of row, this method is less efficient that all pointer iteration but it works
         // also for non continuous images
         const int* p = rho_theta_plane.ptr<int>(y);
         uchar* p_dest = img.ptr<uchar>(y);
 
         for (x = 0; x < nCols; ++x) {
-            // if a value in rho_theta plane is higher than 255 keep 255 ( for display reason is good ) otherwise keep
+            // if a value in rho_theta, plane is higher than 255 keep 255 ( for display reason is good ) otherwise it keeps
             // original
             if(p[x] > 255){
                 p_dest[x] = 255;

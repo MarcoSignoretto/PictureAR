@@ -14,15 +14,15 @@ namespace mcv{
 
 
     /**
-     * Class that allow operations on boundaries, c and b are the common param used in moore algorithm
+     * Class that allows operations on boundaries, c and b are the common parameters used in Moore's algorithm
      * Vec2i is used to store (x,y) Vec2i[0] is x Vec2i[1] is y
      */
     class boundary_extractor {
     public:
 
         /**
-         * Constructor: this perform loading of image with filename given as param then compute otsu thresholding and
-         * keep in memory the result of thresholding ( this is target of all class operation )
+         * Constructor: this constructor performs loading of an image with filename given as a parameter then it computes otsu thresholding and it
+         * keeps the result of thresholding in memory ( this is a target of all class operations )
          * @param filename name of image that we want to analize
          */
         boundary_extractor(const std::string& filename);
@@ -35,7 +35,7 @@ namespace mcv{
         boundary_extractor(const cv::Mat image_gray, bool compute_threshold = true);
 
         /**
-         * Find al boundaries of the image
+         * Find all boundaries of the image
          * @param boundary_color: color of the boundary ( mcv::BLACK or mcv::WHITE )
          */
         void find_boundaries(const uchar boundary_color = WHITE);
@@ -55,25 +55,25 @@ namespace mcv{
         void draw_boundaries(const std::string& dest);
 
         /**
-         * This function create a new binary image where pixel is WHITE (255) if it is in a boundary BLACK (0) otherwise
+         * This function creates a new binary image where pixel is WHITE (255) if it is in a boundary BLACK (0) otherwise
          * @param image: image where results are stored
          */
         void create_boundaries_image(cv::Mat& image);
 
         /**
-         * This function draw all boundaries in RED into the "image" parameter
+         * This function draws all boundaries in RED into the "image" parameter
          * @param image: image where boundaries will be drawn ( must have 3 channels and colored )
          */
         void draw_boundaries(cv::Mat& image);
 
         /**
-         * This function draw all corners in GREEN into the "image" parameter
+         * This function draws all corners in GREEN into the "image" parameter
          * @param image: image where corners will be drawn ( must have 3 channels and colored )
          */
         void draw_boundaries_corners(cv::Mat& image);
 
         /**
-         * This function purge boundaries vector and keep only boundary that has length between
+         * This function purges boundaries vector and it keeps only boundary which has length between
          * min_length and min_length
          * @param min_length lower bound (included)
          * @param max_length upper bound (included)
@@ -81,29 +81,29 @@ namespace mcv{
         void keep_between(int min_length, int max_length);
 
         /**
-         * This function allow to keep only boundaries with a number of corners between "min_corners" and "max_corners"
+         * This function allows to keep only boundaries with a number of corners between "min_corners" and "max_corners"
          * @param min_corners: min corners that boundary must contains
          * @param max_corners: max corners that boundary must contains
          */
         void keep_between_corners(int min_corners, int max_corners);
 
         /**
-         * Compute boundaries corners starting from an image obtained from harris corner "img_corners"
+         * Compute boundary corners starting from an image obtained from harris corner "img_corners"
          * @param img_corners: images with harris corners
          */
         void compute_corners(cv::Mat& img_corners);
 
         /**
-         * This function convert internal boundaries corners representation in cv::Mat format and store this result in
+         * This function converts internal boundary corners representation in cv::Mat format and it stores this result in
          * the "corner_matrix" (WARNING corners are stored in order of boundaries)
-         * between this function and "matrix_to_corners" function no boundaries filters can be applied
+         * between this function and "matrix_to_corners" function no boundary filters can be applied
          * @param corner_matrix: matrix where corners will be saved
          * @see matrix_to_corners
          */
         void corners_to_matrix(cv::Mat& corner_matrix);
 
         /**
-         * This function perform the inverse operation respect to "corners_to_matrix" function and update boundaries corners
+         * This function performs the inverse operation respect to "corners_to_matrix" function and it updates boundary corners
          * between "corners_to_matrix" function and this function no boundaries filters can be applied
          * @param corner_matrix: improved corner matrix which will be used to update boundaries corners
          * @see corners_to_matrix
@@ -119,7 +119,7 @@ namespace mcv{
         }
 
         /**
-         * This function, for each boundary, print index of boundary into boundaries vector and his length
+         * This function, for each boundary, prints index of boundary into boundaries vector and his length
          */
         void print_boundary_lengths();
 
@@ -132,16 +132,16 @@ namespace mcv{
         std::vector<boundary> boundaries_;
 
         /**
-         * Internal function that check position (x,y) is a valid initial boundary point not already found
+         * Internal function which checks position (x,y) is a valid initial boundary point not already found
          * @param x column index in image_
          * @param y row index in image_
-         * @return true if that point is starting point for a new boundary
+         * @return true if that point is the starting point for a new boundary
          */
         inline bool is_valid(int x, int y);
 
         /**
          * Check if point (x,y) is already present into a boundary given as param, this is used to avoid multiple
-         * boundary with different starting point but same sequence
+         * boundaries with different starting point but the same sequence
          * @param b: boundary where search (x,y)
          * @param x
          * @param y
@@ -177,21 +177,21 @@ namespace mcv{
         inline int find_clock_index(cv::Vec2i* c, cv::Vec2i* b);
 
         /**
-         * Internal function that draw in red a boundary on a image divided into channel given.
+         * Internal function which draws in red a boundary on a image divided into channel given.
          * @param b: boundary to draw
          * @param channels: 0 is blue, 1 is green, 2 is red (as standard OpenCV)
          */
         inline void draw_boundary(const cv::Mat& image, const boundary& b, std::vector<cv::Mat>& channels);
 
         /**
-         * This function draw boundary's corners into the "image"
+         * This function draws boundary's corners into the "image"
          * @param image: destination of corners drawing ( must have 3 channels and colored )
          * @param b: boundary which will be drawn
          */
         inline void draw_corners(cv::Mat& image, const boundary &b);
 
         /**
-         * This function draw boundary into the "image"
+         * This function draws boundary into the "image"
          * @param image: destination of boundary drawing ( must have 3 channels and colored or single channel grayscale )
          * @param b: boundary which will be drawn
          * @param padding: if the destination image "image" has 1 pixel of padding or not
@@ -199,12 +199,12 @@ namespace mcv{
         inline void draw_boundary(cv::Mat& image, const boundary &b, const bool padding = false);
 
         /**
-         * This function remove offset of padding image for all boundary points of each boundary
+         * This function removes offset of padding image for all boundary points of each boundary
          */
         inline void normalize();
 
         /**
-         * This function perform the raw operation of conversion between boundaries corners and cv::Mat and init the
+         * This function performs the raw operation of conversion between boundaries corners and cv::Mat and it inits the
          * destination matrix "corner_matrix"
          * @param corner_matrix: matrix where results are stored
          * @param all_corners: vector of pointers where all corners of all boundaries have been putted together

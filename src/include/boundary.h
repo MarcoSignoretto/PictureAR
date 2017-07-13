@@ -25,7 +25,7 @@ namespace mcv{
         std::vector<cv::Vec2i> corners; // clock wise ordered
 
         /**
-         * This function allow to add a point
+         * This function allows to add a point to the current boundary
          * @param b: point to add into boundary
          */
         void add_item(cv::Vec2i& b){
@@ -39,12 +39,12 @@ namespace mcv{
         }
 
         /**
-         * This function print all boundaries
+         * This function prints all boundaries
          */
         void print();
 
         /**
-         * This function compute boundary corners from a harrisCorner output image
+         * This function computes boundary corners from a harrisCorner output image
          * @param img_corners: grayscale image extracted from harrisCorner detection
          */
         void compute_corners(cv::Mat& img_corners);

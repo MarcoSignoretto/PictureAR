@@ -27,7 +27,7 @@ int mcv::marker::detect_orientation(const cv::Mat& warped_image) {
     for( y = OFFSET; y < warped_image.rows-OFFSET; ++y) {
         p = warped_image.ptr<uchar>(y);
         for ( x = OFFSET; x < warped_image.cols-OFFSET; ++x) {
-            // If pixel black add it into accumulator of correct region
+            // If pixel black adds it into accumulator of correct region
             if(p[x] == BLACK){
                 if(x > RECT_0[0].x && x < RECT_0[1].x && y > RECT_0[0].y && y < RECT_0[1].y){
                     ++(accumulators[0]);
@@ -59,7 +59,7 @@ void mcv::marker::calculate_rotation_matrix(cv::Mat& rotation_matrix, int rotati
     float radiants = 0.0f;
     float offset_x = 0.0f;
     float offset_y = 0.0f;
-    // Convert orientation into radiants and compute offset necessary to have rotation respect to center
+    // Convert orientation into radiants and it computes offset necessary to have rotation respect to center
     switch(rotation_degree){
         case 0:
             break;
@@ -98,7 +98,7 @@ void mcv::marker::calculate_rotation_matrix(cv::Mat& rotation_matrix, int rotati
     for(int y = 0; y < rotation_matrix.rows; ++y) {
         p = rotation_matrix.ptr<float>(y);
         for (int x = 0; x < rotation_matrix.cols; ++x) {
-            p[x] = raw_data[rotation_matrix.cols*y+x]; // copy raw data value into matrix
+            p[x] = raw_data[rotation_matrix.cols*y+x]; // it copies raw data value into matrix
         }
     }
 }
@@ -119,7 +119,7 @@ float mcv::marker::compute_matching(const cv::Mat &marker_extracted, const cv::M
     int sum = 0;
     int max = (bottom_right.x-top_left.x)*(bottom_right.y-top_left.y);
 
-    // For each pixels campare them and add one if they are equals
+    // For each pixels it compares them and it adds one if they are equals
     const uchar *p_marker_extracted;
     const uchar *p_marker_candidate;
     for(int y = top_left.y; y < bottom_right.y; ++y) {
@@ -165,7 +165,7 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     be.create_boundaries_image(boundaries_img);// 1 pixel of padding
 
     ///=== STEP 6 ===
-    //===detect corners of the boundaries with harris corner (WARNING both images has 1px of padding respect the original one )
+    //===detect corners of the boundaries with harris corner (WARNING both images have 1px of padding respect to the original one )
     cv::Mat img_corners = cv::Mat::zeros(boundaries_img.rows, boundaries_img.cols, CV_32FC1); // float values
     int block_size = 11;
     int kernel_size = 7;
@@ -218,7 +218,7 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
         float match_1m = mcv::marker::compute_matching(img_1m_th, warped_img);
 
 
-        // Project placeholder with higher probability in original image if match above certain threshold
+        // Project placeholder with higher probability in original image if it matches above certain threshold
         ///=== STEP 14 ===
         if (match_0m > MATCH_THRESHOLD || match_1m > MATCH_THRESHOLD) {
 
@@ -239,7 +239,7 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
 
     }
 
-    // Shows debug images with features
+    // It shows debug images with features
     if (debug_info) {
         be.draw_boundaries(frame_debug);
         be.draw_boundaries_corners(frame_debug);
