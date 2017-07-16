@@ -27,7 +27,7 @@ make install
 for example in my computer is 
 
 ```sh
-cmake  ../ -DOpenCV_DIR="/usr/local/Cellar/opencv3/HEAD-c1007c7" 
+cmake  ../ -DOpenCV_DIR="/usr/local/Cellar/opencv3/3.2.0" 
 ```
 
 ## How to run: ##
