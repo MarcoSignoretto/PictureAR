@@ -116,22 +116,23 @@ float mcv::marker::compute_matching(const cv::Mat &marker_extracted, const cv::M
 
     assert(marker_extracted.rows == marker_candidate.rows && marker_extracted.cols == marker_candidate.cols && "Dimensions mismatch");
 
-    int sum = 0;
-    int max = (bottom_right.x-top_left.x)*(bottom_right.y-top_left.y);
+    float sum = 0.0f;
+    float max = (bottom_right.x-top_left.x)*(bottom_right.y-top_left.y);
 
-    // For each pixels it compares them and it adds one if they are equals
+    // For each pixels it compares them and it adds similarity measure
     const uchar *p_marker_extracted;
     const uchar *p_marker_candidate;
     for(int y = top_left.y; y < bottom_right.y; ++y) {
         p_marker_extracted = marker_extracted.ptr<uchar>(y);
         p_marker_candidate = marker_candidate.ptr<uchar>(y);
         for (int x = top_left.x; x < bottom_right.x; ++x) {
-            if(p_marker_extracted[x] == p_marker_candidate[x])++sum;
+            // Sum similarity if pixels are equal 1 is added otherwise proportional coefficient will be added
+            sum = sum + ((255.0f - abs(p_marker_extracted[x]-p_marker_candidate[x]))/255.0f);
         }
     }
 
     // Normalize sum in order to convert into probability
-    return (float)sum/(float)max;
+    return sum/max;
 }
 
 void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const cv::Mat& img_0m_th, const cv::Mat& img_1m_th, cv::Mat& camera_frame, bool debug_info) {
@@ -182,12 +183,12 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
     be.corners_to_matrix(corner_matrix);
     const cv::TermCriteria criteria = cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 100, 0.001);
     // cornerSubPix optimization is based on original thresholded image
-    cv::cornerSubPix(frame_th,corner_matrix,cv::Size(5,5),cv::Size(-1,-1),criteria);
+    cv::cornerSubPix(frame_th,corner_matrix,cv::Size(5,5),cv::Size(-1,-1),criteria); // (-1,-1) means no zero zone
     be.matrix_to_corners(corner_matrix);
 
     //========== HOMOGRAPHY =============
     // All homography operation are applied into unblured image
-    // warp has been computed in inverse_map configuration to avoid white hole.
+    // warp has been computed in inverse_map configuration to avoid white hole when picture where reported to original one
     std::vector<mcv::boundary> &boundaries = be.get_boundaries();
     for (mcv::boundary &boundary : boundaries) {
         cv::Mat warped_img;
@@ -202,7 +203,8 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
             corners.push_back(cv::Vec2d(corner[0], corner[1]));
         }
         cv::Mat H = cv::findHomography(corners, mcv::marker::DST_POINTS);
-        cv::warpPerspective(frame_th, warped_img, H.inv(), cv::Size(256, 256), cv::WARP_INVERSE_MAP, cv::BORDER_DEFAULT);
+        // Use bilinear interpolation here to obtain better warping where compute matching
+        cv::warpPerspective(frame_th, warped_img, H, cv::Size(256, 256), cv::INTER_LINEAR, cv::BORDER_DEFAULT);
         ///=== STEP 11 ===
         // Detect orientation
         int orientation = mcv::marker::detect_orientation(warped_img);
