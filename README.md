@@ -76,7 +76,7 @@ make run_image4_D
 
 and then invoke the program with some arguments, for example:
 ```sh
-./project list_of_args...
+./PictureAR list_of_args...
 ```
 
 #### Program arguments available: ###
