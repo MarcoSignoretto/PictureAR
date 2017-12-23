@@ -2,7 +2,7 @@
 
 I realized this project for the project of my Compute Vision course at Ca' Foscari university.
 
-This project is a simple AR program that replace two markers with the pictures related to them.
+This project is a simple AR program that replaces two markers with the pictures related to them.
 
 In particular Van marker will be substituted with Van Gohg's picture and Leo with Leonardo's picture.
 
