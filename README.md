@@ -1,19 +1,24 @@
-# GENERAL #
+# Pictures AR #
+
+I realized this project for the project of my Compute Vision course at Ca' Foscari university.
+
+This project is a simple AR program that replace two markers with the pictures related to them.
+
+In particular Van marker will be substituted with Van Gohg's picture and Leo with Leonardo's picture.
 
 All code is commented in order to explain how it works and why I have done some choices instead of others
 
 ### Project Author ###
-Marco Signoretto 850484
+Marco Signoretto
 
 ### GOALS ###
 I have tried to write code efficient and reusable and group it into multiple files with different goals.
 Definition and declaration are splitted into different files, so ```CMakeLists.txt``` and ```src/CMakeLists.txt``` have been edited as well 
 
 ### File ###
-In the project there is the original ```data``` folder with all the files used by the program and the files used to test program:
+In the project there is the original ```data``` folder provided by the teacher with all the files used by the program and the files used to test the program
 
 # Setup #
-The code must be built and setup from the default template for this course as the following:
 
 ## How to build: ##
 
@@ -83,8 +88,3 @@ and then invoke the program with some arguments, for example:
 
 4. ```-c``` or ```--camera``` this argument allows to specify the camera number ( default is 0 which is the main camera ) for ```webcam``` source.
 
---------------------------------------------------------------------------------
-NOTE: 
-Before submitting any assignment, remember to delete both the generated 
-"build" and "dist" directories
---------------------------------------------------------------------------------
