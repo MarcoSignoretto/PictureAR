@@ -8,8 +8,7 @@ In particular Van marker will be substituted with Van Gohg's picture and Leo wit
 
 All code is commented in order to explain how it works and why I have done some choices instead of others
 
-![Markers](data/test1.jpg)
-![Pictures](img/test1AR.png)
+<img src="data/test1.jpg" width="49%"> <img src="img/test1AR.png" width="49%">
 
 ### Project Author ###
 Marco Signoretto
