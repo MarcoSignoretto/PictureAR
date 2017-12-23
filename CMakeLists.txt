@@ -1,6 +1,6 @@
 
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-project(Project)
+project(PictureAR)
 
 if($ENV{BUILD_NUMBER})
   set(BUILD_NUMBER $ENV{BUILD_NUMBER})
@@ -8,7 +8,7 @@ else()
   set(BUILD_NUMBER 0)
 endif()
 
-set(CvLab_NAME "project")
+set(CvLab_NAME "PictureAR")
 set(CvLab_VERSION "0.1.0.${BUILD_NUMBER}")
 set(CvLab_BRIEF "${CV2017_NAME} is the project of the computer vision course 2017")
 
