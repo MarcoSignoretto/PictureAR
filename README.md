@@ -22,6 +22,12 @@ In the project there is the original ```data``` folder provided by the teacher w
 
 # Setup #
 
+## Install OpenCv (macOS)
+ 
+```sh
+brew install opencv
+```
+
 ## How to build: ##
 
 ```sh
@@ -34,7 +40,7 @@ make install
 for example in my computer is 
 
 ```sh
-cmake  ../ -DOpenCV_DIR="/usr/local/Cellar/opencv3/3.2.0" 
+cmake  ../ -DOpenCV_DIR="/usr/local/Cellar/opencv/4.1.2" 
 ```
 
 ## How to run: ##

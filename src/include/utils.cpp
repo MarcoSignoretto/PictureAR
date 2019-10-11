@@ -263,7 +263,7 @@ void mcv::line(cv::Mat &dest,  double rho, double theta, double origin_x, double
     pt1.y = cvRound(y0 + 1000*(a));
     pt2.x = cvRound(x0 - 1000*(-b));
     pt2.y = cvRound(y0 - 1000*(a));
-    cv::line( dest, pt1, pt2, cv::Scalar(255,255,255), 1, CV_AA);
+    cv::line( dest, pt1, pt2, cv::Scalar(255,255,255), 1, cv::LINE_AA);
 }
 
 double mcv::m(double theta) {

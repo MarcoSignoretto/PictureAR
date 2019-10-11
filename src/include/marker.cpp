@@ -6,10 +6,12 @@
 #include "utils.h"
 #include "boundary_extractor.h"
 #include <assert.h>
+#include <opencv2/shape.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/core/utility.hpp>
+#include <opencv2/calib3d.hpp>
 #include <opencv2/imgproc.hpp>
-#include <opencv/cv.hpp>
-
-
 
 int mcv::marker::detect_orientation(const cv::Mat& warped_image) {
 
@@ -144,7 +146,7 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
 
     ///=== STEP 1 ===
     // Convert original image into gray scale image
-    cv::cvtColor(camera_frame, grayscale, CV_RGB2GRAY);
+    cv::cvtColor(camera_frame, grayscale, cv::COLOR_RGB2GRAY);
 
     if(debug_info) {
         frame_debug = camera_frame.clone();

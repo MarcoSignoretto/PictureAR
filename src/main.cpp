@@ -1,7 +1,8 @@
 #include <iostream>
 #include <opencv2/videoio.hpp>
-#include <opencv/cv.hpp>
 #include <exception>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgcodecs.hpp>
 
 #include "include/utils.h"
 #include "include/boundary_extractor.h"
@@ -96,8 +97,8 @@ int main( int argc, char* argv[] ) {
         bool end = false;
         if (vc.isOpened()) {
             // Setup frame with fixed resolution in order to be fast and work in the same way for each resolution
-            vc.set(CV_CAP_PROP_FRAME_WIDTH,640);
-            vc.set(CV_CAP_PROP_FRAME_HEIGHT,480);
+            vc.set(cv::CAP_PROP_FRAME_WIDTH,640);
+            vc.set(cv::CAP_PROP_FRAME_HEIGHT,480);
 
             int frame_number = 1;
 
@@ -108,8 +109,11 @@ int main( int argc, char* argv[] ) {
                 if (camera_frame.empty()) { // if camera frame are infinite but in video no
                     end = true;
                 } else {
-
-                    mcv::marker::apply_AR(img_0p, img_1p, img_0m_th, img_1m_th, camera_frame, debug_info);
+                    try {
+                        mcv::marker::apply_AR(img_0p, img_1p, img_0m_th, img_1m_th, camera_frame, debug_info);
+                    } catch(cv::Exception e){
+                        std::cout << "Impossible to apply AR: " << e.msg << std::endl;
+                    }
                     cv::imshow("original", camera_frame);
 
                     cv::waitKey(1);  // delay between frame read ( if to long we loose frames )
