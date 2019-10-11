@@ -13,7 +13,7 @@
 using namespace mcv;
 
 boundary_extractor::boundary_extractor(const std::string& filename):filename_(filename){
-    const cv::Mat image_gray = cv::imread(filename, cv::IMREAD_GRAYSCALE);
+    const cv::Mat image_gray{cv::imread(filename, cv::IMREAD_GRAYSCALE)};
 
     //compute otsu thresholding
     cv::Mat image;
@@ -43,7 +43,7 @@ boundary_extractor::boundary_extractor(const std::string& filename):filename_(fi
 }
 
 
-boundary_extractor::boundary_extractor(const cv::Mat image_gray, bool compute_threshold):filename_(""){
+boundary_extractor::boundary_extractor(const cv::Mat& image_gray, bool compute_threshold):filename_(""){
 
     assert(image_.channels() == 1 && "Invalid channel number");
 

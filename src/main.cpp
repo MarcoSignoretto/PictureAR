@@ -59,10 +59,10 @@ int main( int argc, char* argv[] ) {
     ///======= LOAD MARKERS AND PLACEHOLDERS =======
 
     // Load Marker images and Placeholder
-    const cv::Mat img_0p = cv::imread("data/0P.png");
-    const cv::Mat img_1p = cv::imread("data/1P.png");
-    const cv::Mat img_0m = cv::imread("data/0M.png", cv::IMREAD_GRAYSCALE);
-    const cv::Mat img_1m = cv::imread("data/1M.png", cv::IMREAD_GRAYSCALE);
+    const cv::Mat img_0p{cv::imread("data/0P.png")};
+    const cv::Mat img_1p{cv::imread("data/1P.png")};
+    const cv::Mat img_0m{cv::imread("data/0M.png", cv::IMREAD_GRAYSCALE)};
+    const cv::Mat img_1m{cv::imread("data/1M.png", cv::IMREAD_GRAYSCALE)};
 
     //Threshold img_0m
     cv::Mat img_0m_th;
@@ -77,7 +77,7 @@ int main( int argc, char* argv[] ) {
 
     if( frame_source == SOURCE_IMAGE) {
 
-        cv::Mat frame = cv::imread(filename);
+        cv::Mat frame{cv::imread(filename)};
 
         mcv::marker::apply_AR(img_0p, img_1p, img_0m_th, img_1m_th, frame, debug_info);
 
