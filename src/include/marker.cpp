@@ -6,8 +6,6 @@
 #include "utils.h"
 #include "boundary_extractor.h"
 #include <assert.h>
-#include <opencv2/shape.hpp>
-#include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/core/utility.hpp>
 #include <opencv2/calib3d.hpp>

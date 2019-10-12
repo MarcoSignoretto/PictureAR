@@ -6,7 +6,6 @@
 #define PROJECT_MARKER_H
 
 #include <opencv2/core/mat.hpp>
-#include <MacTypes.h>
 
 namespace mcv{
     namespace marker{
