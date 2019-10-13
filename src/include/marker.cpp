@@ -5,6 +5,7 @@
 #include "marker.h"
 #include "utils.h"
 #include "boundary_extractor.h"
+#include "Matcher.h"
 #include <assert.h>
 #include <opencv2/highgui.hpp>
 #include <opencv2/core/utility.hpp>
@@ -135,7 +136,7 @@ float mcv::marker::compute_matching(const cv::Mat &marker_extracted, const cv::M
     return sum/max;
 }
 
-void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const cv::Mat& img_0m_th, const cv::Mat& img_1m_th, cv::Mat& camera_frame, bool debug_info) {
+void mcv::marker::apply_AR(const mcv::Matcher& matcher, cv::Mat& camera_frame, bool debug_info) {
     cv::Mat frame_debug;
     cv::Mat grayscale;
     cv::Mat frame_th;
@@ -216,27 +217,21 @@ void mcv::marker::apply_AR(const cv::Mat& img_0p, const cv::Mat& img_1p, const c
 
         ///=== STEP 13 ===
         // ============ MATCHING
-        float match_0m = mcv::marker::compute_matching(img_0m_th, warped_img);
-        float match_1m = mcv::marker::compute_matching(img_1m_th, warped_img);
 
-
-        // Project placeholder with higher probability in original image if it matches above certain threshold
-        ///=== STEP 14 ===
-        if (match_0m > MATCH_THRESHOLD || match_1m > MATCH_THRESHOLD) {
-
-            const cv::Mat &matched_image = (match_0m > match_1m) ? img_0p : img_1p;
+        const cv::Mat* matched_image = matcher.findBestMatch(warped_img, MATCH_THRESHOLD);
+        if(matched_image != nullptr){
 
             cv::Mat output_img;
 
             // Updated rotation matrix with picture rotation
             mcv::marker::calculate_picture_rotation(rotation_matrix, orientation);
-            cv::warpPerspective(matched_image, output_img, rotation_matrix, cv::Size(256, 256));
+            cv::warpPerspective(*matched_image, output_img, rotation_matrix, cv::Size(256, 256));
             cv::warpPerspective(output_img, camera_frame, H, cv::Size(camera_frame.cols, camera_frame.rows), cv::WARP_INVERSE_MAP, cv::BORDER_TRANSPARENT);
         }
 
         if(debug_info){
             cv::imshow("warped_marker", warped_img);
-            cout << "LEO: " << match_0m << ", VAN: " << match_1m << endl;
+//            cout << "LEO: " << match_0m << ", VAN: " << match_1m << endl;
         }
 
     }

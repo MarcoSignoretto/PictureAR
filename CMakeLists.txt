@@ -19,6 +19,8 @@ set(SOURCE_FILES
         include/boundary_extractor.cpp
         include/utils.cpp
         include/marker.cpp
+        include/gino.cpp
+        include/Matcher.cpp
         )
 
 # Setup default installation dir

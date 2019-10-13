@@ -7,6 +7,7 @@
 #include "include/utils.h"
 #include "include/boundary_extractor.h"
 #include "include/marker.h"
+#include "include/Matcher.h"
 
 using namespace std;
 
@@ -72,6 +73,13 @@ int main( int argc, char* argv[] ) {
     cv::Mat img_1m_th;
     mcv::image_otsu_thresholding(img_1m,img_1m_th);
 
+    const mcv::Matcher matcher{
+        std::vector<const cv::Mat*>{&img_0m_th, &img_1m_th},
+        std::vector<const cv::Mat*>{&img_0p, &img_1p}
+    };
+
+    matcher.findBestMatch(img_0m_th, 34);
+
 
     ///======= HANDLE DIFFERENT SOURCES =======
 
@@ -79,7 +87,7 @@ int main( int argc, char* argv[] ) {
 
         cv::Mat frame{cv::imread(filename)};
 
-        mcv::marker::apply_AR(img_0p, img_1p, img_0m_th, img_1m_th, frame, debug_info);
+        mcv::marker::apply_AR(matcher, frame, debug_info);
 
         cv::imshow("original", frame);
         cv::waitKey(0);
@@ -110,8 +118,8 @@ int main( int argc, char* argv[] ) {
                     end = true;
                 } else {
                     try {
-                        mcv::marker::apply_AR(img_0p, img_1p, img_0m_th, img_1m_th, camera_frame, debug_info);
-                    } catch(cv::Exception e){
+                        mcv::marker::apply_AR(matcher, camera_frame, debug_info);
+                    } catch(const cv::Exception& e){
                         std::cout << "Impossible to apply AR: " << e.msg << std::endl;
                     }
                     cv::imshow("original", camera_frame);
