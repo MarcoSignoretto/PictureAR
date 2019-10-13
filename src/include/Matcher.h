@@ -12,8 +12,8 @@
 namespace mcv{
     class Matcher {
     private:
-        const std::vector<const cv::Mat*>& m_markers;
-        const std::vector<const cv::Mat*>& m_replacements;
+        const std::vector<const cv::Mat*> m_markers;
+        const std::vector<const cv::Mat*> m_replacements;
     public:
         Matcher(
                 const std::vector<const cv::Mat*>& markers,
